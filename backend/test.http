@@ -1,9 +1,9 @@
 POST http://localhost:4000/student/apply
 Content-Type: application/json
-Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4Njc5YTNkNi1kZjg4LTQxMTItOGI5Ny1lM2IwNGRhM2I5NzkiLCJlbWFpbCI6IjIyMDcxYTA1MDhAdm5ydmppZXQuaW4iLCJuYW1lIjoiU3R1ZGVudCBPbmUiLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0OTY1MjgxMCwiZXhwIjoxNzUwMjU3NjEwfQ.jCuLesiZcAuWSrPprsl0XrsKFCjs-ou_BHr_ouNyVs8
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwM2FiZGIyZC03NWI5LTQ3NzMtYTUyOC1mZmM5MThlMTMyYTciLCJlbWFpbCI6IjIyMDcxYTA1MDhAdm5ydmppZXQuaW4iLCJuYW1lIjoiTmFnYSBTYWkgS2lyYW4iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0OTY2MDE5MywiZXhwIjoxNzUwMjY0OTkzfQ._wpKXbo_iSz1MP6hA1On7X-FYBUcpXcCKYAGC2YhNgs
 
 {
-  "reason": "I need to go home urgently."
+  "reason": "vinayakudi pooja"
 }
 
 
@@ -18,13 +18,12 @@ Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwM2FiZGIy
 
 ### Mentor views pending requests
 GET http://localhost:4000/mentor/requests
-Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIzZC05NzgzLTRmNDktYTYyMC05YzY2ZWY1MjMzNWUiLCJlbWFpbCI6ImF2ZWVub25pZ2h0c0BnbWFpbC5jb20iLCJuYW1lIjoiSm9lIEFsd3luIiwicm9sZSI6Ik1FTlRPUiIsImlhdCI6MTc0OTY1NjExNSwiZXhwIjoxNzUwMjYwOTE1fQ.oSwvGUBszDk0nlvyu8OOWaoWFIDG04Lsw1SL0dTImjo
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIzZC05NzgzLTRmNDktYTYyMC05YzY2ZWY1MjMzNWUiLCJlbWFpbCI6ImF2ZWVub25pZ2h0c0BnbWFpbC5jb20iLCJuYW1lIjoiSm9lIEFsd3luIiwicm9sZSI6Ik1FTlRPUiIsImlhdCI6MTc0OTY2MDM1MywiZXhwIjoxNzUwMjY1MTUzfQ.SBYX-RLOYw3JyhiH1opM9h5tR_GTtDTjpTkfbmsz2mc
 
 
 ### Logout
 POST http://localhost:4000/logout
 Cookie: gatepass_token=PeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwM2FiZGIyZC03NWI5LTQ3NzMtYTUyOC1mZmM5MThlMTMyYTciLCJlbWFpbCI6IjIyMDcxYTA1MDhAdm5ydmppZXQuaW4iLCJuYW1lIjoiTmFnYSBTYWkgS2lyYW4iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0OTY1NDkwOCwiZXhwIjoxNzUwMjU5NzA4fQ.3kr25GsQhk_gW6M5uewPzAXIB_Wdqz9U8ET1nlbIWjM
-
 
 ### Mentor views pending gate pass requests
 GET http://localhost:4000/mentor/requests
@@ -32,7 +31,7 @@ Cookie: gatepass_token=PASTE_MENTOR_TOKEN_HERE
 
 ### mentor responding to requets
 GET http://localhost:4000/mentor/requests
-Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIzZC05NzgzLTRmNDktYTYyMC05YzY2ZWY1MjMzNWUiLCJlbWFpbCI6ImF2ZWVub25pZ2h0c0BnbWFpbC5jb20iLCJuYW1lIjoiSm9lIEFsd3luIiwicm9sZSI6Ik1FTlRPUiIsImlhdCI6MTc0OTY1NjExNSwiZXhwIjoxNzUwMjYwOTE1fQ.oSwvGUBszDk0nlvyu8OOWaoWFIDG04Lsw1SL0dTImjo
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIzZC05NzgzLTRmNDktYTYyMC05YzY2ZWY1MjMzNWUiLCJlbWFpbCI6ImF2ZWVub25pZ2h0c0BnbWFpbC5jb20iLCJuYW1lIjoiSm9lIEFsd3luIiwicm9sZSI6Ik1FTlRPUiIsImlhdCI6MTc0OTY2MDM1MywiZXhwIjoxNzUwMjY1MTUzfQ.SBYX-RLOYw3JyhiH1opM9h5tR_GTtDTjpTkfbmsz2mc
 
 ###posting from mentor side (reject/approve)
 POST http://localhost:4000/mentor/respond
@@ -40,7 +39,7 @@ Content-Type: application/json
 Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIzZC05NzgzLTRmNDktYTYyMC05YzY2ZWY1MjMzNWUiLCJlbWFpbCI6ImF2ZWVub25pZ2h0c0BnbWFpbC5jb20iLCJuYW1lIjoiSm9lIEFsd3luIiwicm9sZSI6Ik1FTlRPUiIsImlhdCI6MTc0OTY1NjExNSwiZXhwIjoxNzUwMjYwOTE1fQ.oSwvGUBszDk0nlvyu8OOWaoWFIDG04Lsw1SL0dTImjo
 
 {
-  "gatePassId": "01794e32-6ef4-4b65-8b3f-abd00367d40c",
+  "gatePassId": "c0656a5d-cbb0-4dc2-97e8-7efef7321179",
   "action": "APPROVE",
-  "comment": "Looks good, safe journey."
+  "comment": "enjoy pandago."
 }
