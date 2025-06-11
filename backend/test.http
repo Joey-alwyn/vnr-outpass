@@ -1,0 +1,46 @@
+POST http://localhost:4000/student/apply
+Content-Type: application/json
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4Njc5YTNkNi1kZjg4LTQxMTItOGI5Ny1lM2IwNGRhM2I5NzkiLCJlbWFpbCI6IjIyMDcxYTA1MDhAdm5ydmppZXQuaW4iLCJuYW1lIjoiU3R1ZGVudCBPbmUiLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0OTY1MjgxMCwiZXhwIjoxNzUwMjU3NjEwfQ.jCuLesiZcAuWSrPprsl0XrsKFCjs-ou_BHr_ouNyVs8
+
+{
+  "reason": "I need to go home urgently."
+}
+
+
+### Student applies for gate pass
+POST http://localhost:4000/student/apply
+Content-Type: application/json
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwM2FiZGIyZC03NWI5LTQ3NzMtYTUyOC1mZmM5MThlMTMyYTciLCJlbWFpbCI6IjIyMDcxYTA1MDhAdm5ydmppZXQuaW4iLCJuYW1lIjoiTmFnYSBTYWkgS2lyYW4iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0OTY1NjA3MywiZXhwIjoxNzUwMjYwODczfQ.H9jsNp7LKB0dp7ADo7QqsW-ezttG9kH2b3CzHXWfBg4
+
+{
+  "reason": "I go tirupati"
+}
+
+### Mentor views pending requests
+GET http://localhost:4000/mentor/requests
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIzZC05NzgzLTRmNDktYTYyMC05YzY2ZWY1MjMzNWUiLCJlbWFpbCI6ImF2ZWVub25pZ2h0c0BnbWFpbC5jb20iLCJuYW1lIjoiSm9lIEFsd3luIiwicm9sZSI6Ik1FTlRPUiIsImlhdCI6MTc0OTY1NjExNSwiZXhwIjoxNzUwMjYwOTE1fQ.oSwvGUBszDk0nlvyu8OOWaoWFIDG04Lsw1SL0dTImjo
+
+
+### Logout
+POST http://localhost:4000/logout
+Cookie: gatepass_token=PeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwM2FiZGIyZC03NWI5LTQ3NzMtYTUyOC1mZmM5MThlMTMyYTciLCJlbWFpbCI6IjIyMDcxYTA1MDhAdm5ydmppZXQuaW4iLCJuYW1lIjoiTmFnYSBTYWkgS2lyYW4iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0OTY1NDkwOCwiZXhwIjoxNzUwMjU5NzA4fQ.3kr25GsQhk_gW6M5uewPzAXIB_Wdqz9U8ET1nlbIWjM
+
+
+### Mentor views pending gate pass requests
+GET http://localhost:4000/mentor/requests
+Cookie: gatepass_token=PASTE_MENTOR_TOKEN_HERE
+
+### mentor responding to requets
+GET http://localhost:4000/mentor/requests
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIzZC05NzgzLTRmNDktYTYyMC05YzY2ZWY1MjMzNWUiLCJlbWFpbCI6ImF2ZWVub25pZ2h0c0BnbWFpbC5jb20iLCJuYW1lIjoiSm9lIEFsd3luIiwicm9sZSI6Ik1FTlRPUiIsImlhdCI6MTc0OTY1NjExNSwiZXhwIjoxNzUwMjYwOTE1fQ.oSwvGUBszDk0nlvyu8OOWaoWFIDG04Lsw1SL0dTImjo
+
+###posting from mentor side (reject/approve)
+POST http://localhost:4000/mentor/respond
+Content-Type: application/json
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIzZC05NzgzLTRmNDktYTYyMC05YzY2ZWY1MjMzNWUiLCJlbWFpbCI6ImF2ZWVub25pZ2h0c0BnbWFpbC5jb20iLCJuYW1lIjoiSm9lIEFsd3luIiwicm9sZSI6Ik1FTlRPUiIsImlhdCI6MTc0OTY1NjExNSwiZXhwIjoxNzUwMjYwOTE1fQ.oSwvGUBszDk0nlvyu8OOWaoWFIDG04Lsw1SL0dTImjo
+
+{
+  "gatePassId": "01794e32-6ef4-4b65-8b3f-abd00367d40c",
+  "action": "APPROVE",
+  "comment": "Looks good, safe journey."
+}

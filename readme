@@ -1,0 +1,153 @@
+# VNR OutPass Application
+
+A full-stack Gate Pass Management System for VNRVJIET students and faculty. This project supports role-based access (Student, Mentor, HOD, Security), Google OAuth login, session-based authentication using cookies, and scalable database relationships via PostgreSQL and Prisma.
+
+---
+
+## ✅ Tech Stack
+
+### Frontend:
+
+* React + Vite
+* TypeScript
+* REST Client (for API testing)
+
+### Backend:
+
+* Node.js + Express
+* TypeScript
+* Prisma ORM
+* PostgreSQL (NeonDB recommended)
+
+### Auth:
+
+* Google OAuth2
+* JWT + HttpOnly Cookies
+
+---
+
+## 📦 Install & Run
+
+### 1. Clone the Repo
+
+```bash
+git clone https://github.com/yourusername/vnr-outpass.git
+cd vnr-outpass
+```
+
+### 2. Install Dependencies
+
+```bash
+# From root
+cd backend && npm install
+cd ../frontend && npm install
+```
+
+### 3. Set Up Environment Variables
+
+Create a `.env` file in `backend/`:
+
+```
+PORT=4000
+GOOGLE_CLIENT_ID=your-client-id
+JWT_SECRET=your-very-secret-string
+JWT_EXPIRES_IN=7d
+DATABASE_URL=your-postgres-url
+COOKIE_NAME=gatepass_token
+```
+
+### 4. Setup Prisma & Database
+
+```bash
+cd backend
+npx prisma generate
+npx prisma migrate dev --name init
+npx ts-node prisma/seed.ts
+```
+
+> ⚠️ Re-run `npx prisma generate` if schema changes
+
+### 5. Start the App
+
+```bash
+# Backend
+cd backend
+npm run dev
+
+# Frontend
+cd frontend
+npm run dev
+```
+
+Visit: `http://localhost:5173`
+
+---
+
+## 🧪 Testing APIs (using REST Client)
+
+Use `test.http` file in the root to:
+
+* Login via `idToken`
+* Apply for Gate Pass
+* View Mentor Requests
+* Approve/Reject Pass
+* Security scan & verify
+
+---
+
+## 📁 Important Files Overview
+
+```
+vnr-outpass/
+├── backend/
+│   ├── prisma/
+│   │   └── schema.prisma         # Prisma DB schema
+│   ├── src/
+│   │   ├── index.ts              # Main Express server
+│   │   ├── auth.ts               # Auth logic (JWT, middleware)
+│   │   ├── config.ts             # ENV vars and constants
+│   │   └── scripts/seed.ts       # Initial user/mentor mapping
+│   └── .env                      # Secrets and DB config
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx               # Handles role-based UI
+│   │   └── components/
+│   │       └── LoginButton.tsx   # Google login button logic
+│
+└── test.http                     # Manual test cases
+```
+
+
+## 🔜 Pending To-Do
+
+* [ ] ✅ Frontend: Build separate pages per role
+
+  * [ ] `Student`: Apply form + status history
+  * [ ] `Mentor`: Dashboard to approve/reject requests
+  * [ ] `Security`: QR Scanner UI + validation feedback
+  * [ ] `HOD`: Escalation approval panel
+* [ ] ✅ Setup proper routing/navigation (React Router)
+* [ ] 🔐 Protect frontend routes based on session & role
+* [ ] 🔄 Implement auto-refresh for new gate pass requests
+* [ ] 📷 (Optional) Capture/display student photo
+* [ ] 📦 Switch to production backend DB when deploying
+* [ ] 📈 Improve UI/UX (Tailwind + cleaner layout)
+* [ ] 📲 Add notifications (Email / WhatsApp - optional)
+* [ ] 📁 Import actual student-mentor mappings via CSV
+* [ ] 🧪 Add unit tests (backend + auth)
+* [ ] 🚀 Deployment scripts (Fly.io / Vercel / Railway)
+
+---
+
+## 👥 Seeded Accounts
+
+| Role     | Email                                                   | Notes         |
+| -------- | ------------------------------------------------------- | ------------- |
+| Mentor   | [aveenonights@gmail.com](mailto:aveenonights@gmail.com) | Sample Mentor |
+| Student  | [22071a0508@vnrvjiet.in](mailto:22071a0508@vnrvjiet.in) | Sample User   |
+| Security | [guard@vnrsecurity.com](mailto:guard@vnrsecurity.com)   | Gate Scanner  |
+
+---
+
+good luck lamavo if u are reading this

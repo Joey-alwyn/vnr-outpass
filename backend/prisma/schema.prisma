@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  MENTOR
+  HOD
+  SECURITY
+}
+
+enum GatePassStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ESCALATED
+  UTILIZED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      Role
+  createdAt DateTime @default(now())
+
+  // ✅ Relationships
+  gatePasses       GatePass[]       @relation("StudentGatePasses")
+  passesToReview   GatePass[]       @relation("MentorGatePasses")
+
+  students         StudentMentor[]  @relation("MentorMap")
+  mentors          StudentMentor[]  @relation("StudentMap")
+}
+
+model GatePass {
+  id         String   @id @default(uuid())
+  reason     String
+  status     GatePassStatus @default(PENDING)
+  appliedAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  student    User     @relation("StudentGatePasses", fields: [studentId], references: [id], onDelete: Cascade)
+  studentId  String
+
+  mentor     User     @relation("MentorGatePasses", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentorId   String
+}
+
+model StudentMentor {
+  id         String   @id @default(uuid())
+
+  student    User     @relation("StudentMap", fields: [studentId], references: [id])
+  studentId  String
+
+  mentor     User     @relation("MentorMap", fields: [mentorId], references: [id])
+  mentorId   String
+
+  @@unique([studentId]) // One student can have only one mentor
+}
