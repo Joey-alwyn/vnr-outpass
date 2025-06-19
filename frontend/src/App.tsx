@@ -1,86 +1,70 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { LoginButton } from './components/LoginButton';
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './auth/AuthContext';
+import { Layout } from './components/Layout';
+import { RequireRole } from './components/RequireRole';
+import Home from './pages/Home';
+import GatePassForm from './pages/GatePassForm';
+import StudentStatus from './pages/StudentStatus';
+import MentorRequests from './pages/MentorRequests';
+import SecurityScan from './pages/SecurityScan';
+import HodPanel from './pages/HodPanel';
+import NotFound from './pages/NotFound';
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'STUDENT' | 'MENTOR' | 'HOD' | 'SECURITY';
-}
+const App: React.FC = () => (
+  <AuthProvider>
+    <BrowserRouter>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
 
-function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+          <Route
+            path="/apply"
+            element={
+              <RequireRole roles={[ 'STUDENT' ]}>
+                <GatePassForm />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/student/status"
+            element={
+              <RequireRole roles={[ 'STUDENT' ]}>
+                <StudentStatus />
+              </RequireRole>
+            }
+          />
 
-  // Fetch session user on mount
-  useEffect(() => {
-    axios
-      .get('http://localhost:4000/check-auth', { withCredentials: true })
-      .then((res) => {
-        setUser(res.data.user);
-      })
-      .catch(() => {
-        setUser(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+          <Route
+            path="/mentor"
+            element={
+              <RequireRole roles={[ 'MENTOR' ]}>
+                <MentorRequests />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/security"
+            element={
+              <RequireRole roles={[ 'SECURITY' ]}>
+                <SecurityScan />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/hod"
+            element={
+              <RequireRole roles={[ 'HOD' ]}>
+                <HodPanel />
+              </RequireRole>
+            }
+          />
 
-  // Logout
-  const logout = async () => {
-    await axios.post('http://localhost:4000/logout', {}, { withCredentials: true });
-    setUser(null);
-  };
-
-  if (loading) return <p>Loading...</p>;
-
-  if (!user) {
-    return (
-      <div style={{ padding: '2rem' }}>
-        <h2>Welcome to VNR OutPass</h2>
-        <LoginButton />
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h2>Hello, {user.name}</h2>
-      <p>
-        Logged in as <strong>{user.role}</strong> ({user.email})
-      </p>
-
-      <button onClick={logout} style={{ marginBottom: '1rem' }}>
-        Logout
-      </button>
-
-      {user.role === 'STUDENT' && (
-        <p>
-          <a href="/apply">Apply for Gate Pass</a>
-        </p>
-      )}
-
-      {user.role === 'MENTOR' && (
-        <p>
-          <a href="/mentor">View Pending Requests</a>
-        </p>
-      )}
-
-      {user.role === 'SECURITY' && (
-        <p>
-          <a href="/security">Scan QR</a>
-        </p>
-      )}
-
-      {user.role === 'HOD' && (
-        <p>
-          <a href="/hod">HOD Review Panel</a>
-        </p>
-      )}
-    </div>
-  );
-}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
+  </AuthProvider>
+);
 
 export default App;

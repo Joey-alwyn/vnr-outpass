@@ -38,17 +38,22 @@ model User {
 }
 
 model GatePass {
-  id         String   @id @default(uuid())
-  reason     String
-  status     GatePassStatus @default(PENDING)
-  appliedAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id             String         @id @default(uuid())
+  reason         String
+  status         GatePassStatus @default(PENDING)
+  appliedAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  student    User     @relation("StudentGatePasses", fields: [studentId], references: [id], onDelete: Cascade)
-  studentId  String
+  // QR code fields
+  qrToken        String?        @unique
+  qrValid        Boolean        @default(false)
+  qrGeneratedAt  DateTime?
 
-  mentor     User     @relation("MentorGatePasses", fields: [mentorId], references: [id], onDelete: Cascade)
-  mentorId   String
+  student        User           @relation("StudentGatePasses", fields: [studentId], references: [id], onDelete: Cascade)
+  studentId      String
+
+  mentor         User           @relation("MentorGatePasses", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentorId       String
 }
 
 model StudentMentor {

@@ -62,6 +62,7 @@ async function main() {
   const mentor = await prisma.user.findFirst({
     where: {
       email: 'aveenonights@gmail.com',
+      
     },
   });
 
