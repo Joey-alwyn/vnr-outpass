@@ -66,6 +66,11 @@ npx ts-node prisma/seed.ts
 ```
 
 > ⚠️ Re-run `npx prisma generate` if schema changes
+⚠️ Important Notes
+You only need to run 'migrate dev' once per migration.
+If you're not sure — run 'npx prisma migrate status' to check if you're behind.
+Always follow it up with:
+npx prisma generate
 
 ### 5. Start the App
 
