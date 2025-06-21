@@ -28,7 +28,7 @@ export async function googleLogin(req: Request, res: Response):Promise<any> {
       user = await prisma.user.create({ data: { email, name, role: inferredRole } });
     }
 
-    issueSessionCookie(res, { sub: user.id, email: user.email, name: user.name, role: user.role });
+    issueSessionCookie(res, { id: user.id, email: user.email, name: user.name, role: user.role });
     res.json({ message: 'Logged in', user });
   } catch (err) {
     console.error('Google login error:', err);
