@@ -1,69 +1,75 @@
 # VNR OutPass Application
 
-A full-stack Gate Pass Management System for VNRVJIET students and faculty. This project supports role-based access (Student, Mentor, HOD, Security), Google OAuth login, session-based authentication using cookies, and scalable database relationships via PostgreSQL and Prisma.
+A full-stack Gate Pass Management System for VNRVJIET. Supports role-based access (Student, Mentor, HOD, Security), Google OAuth, QR-based validation, and secure backend using PostgreSQL with Prisma.
 
 ---
 
-## ✅ Tech Stack
+## 🛠️ Tech Stack
 
-### Frontend:
-
-* React + Vite
-* TypeScript
-* REST Client (for API testing)
-
-### Backend:
-
-* Node.js + Express
-* TypeScript
-* Prisma ORM
-* PostgreSQL (NeonDB recommended)
-
-### Auth:
-
-* Google OAuth2
-* JWT + HttpOnly Cookies
+- **Frontend:** React + Vite + TypeScript
+- **Backend:** Express.js + TypeScript + Prisma
+- **Database:** PostgreSQL (hosted via NeonDB)
+- **Auth:** Google OAuth2 + JWT + HttpOnly Cookies
 
 ---
 
-## 📦 Install & Run
+## 🚀 Setup Instructions
 
-### 1. Clone the Repo
-
+### 1. Clone & Install
 ```bash
-git clone https://github.com/yourusername/vnr-outpass.git
+git clone https://github.com/Joey-alwyn/vnr-outpass.git
 cd vnr-outpass
-```
+
 
 ### 2. Install Dependencies
 
-```bash
-# From root
-cd backend && npm install
-cd ../frontend && npm install
-```
+cd backend
+npm install
+
+cd ../frontend
+npm install
+
 
 ### 3. Set Up Environment Variables
 
 Create a `.env` file in `backend/`:
-
-```
-PORT=4000
-GOOGLE_CLIENT_ID=your-client-id
-JWT_SECRET=your-very-secret-string
-JWT_EXPIRES_IN=7d
-DATABASE_URL=your-postgres-url
-COOKIE_NAME=gatepass_token
+and in 'frontend/'
 ```
 
 ### 4. Setup Prisma & Database
+Migrate & Seed
 
-```bash
+
 cd backend
-npx prisma generate
 npx prisma migrate dev --name init
-npx ts-node prisma/seed.ts
-```
+npx prisma generate
+npx ts-node src/scripts/seed.ts
+✅ This seeds initial users + mentor mappings.
+>added seed script to json so - 'npm run seed' should be enough instead of the last command
+
+🔄 How to Add New Mentor/Student Mappings
+Update src/scripts/seed.ts with only the new users and mappings like this:
+
+
+// Add new users only
+await prisma.user.createMany({
+  data: [ ...newUsers ],
+  skipDuplicates: true,
+});
+
+// Find users by email and map
+const mentor = await prisma.user.findUnique({ where: { email: 'mentor@example.com' } });
+const student = await prisma.user.findUnique({ where: { email: 'student@example.com' } });
+
+await prisma.studentMentor.create({
+  data: {
+    studentId: student.id,
+    mentorId: mentor.id
+  }
+});
+✔️ Re-run: 
+npx ts-node src/scripts/seed.ts
+>added seed script to json so - 'npm run seed' should be enough instead of the last command
 
 > ⚠️ Re-run `npx prisma generate` if schema changes
 ⚠️ Important Notes
@@ -105,53 +111,67 @@ Use `test.http` file in the root to:
 ```
 vnr-outpass/
 ├── backend/
-│   ├── prisma/
-│   │   └── schema.prisma         # Prisma DB schema
 │   ├── src/
-│   │   ├── index.ts              # Main Express server
-│   │   ├── auth.ts               # Auth logic (JWT, middleware)
-│   │   ├── config.ts             # ENV vars and constants
-│   │   └── scripts/seed.ts       # Initial user/mentor mapping
-│   └── .env                      # Secrets and DB config
+│   │   ├── index.ts               # Entry point
+│   │   ├── config.ts              # ENV config
+│   │   ├── auth.ts                # JWT & Google auth
+│   │   ├── middlewares/
+│   │   │   └── auth.middleware.ts # isAuthenticated, requireRole
+│   │   ├── controllers/
+│   │   │   ├── student.controller.ts
+│   │   │   ├── mentor.controller.ts
+│   │   │   ├── security.controller.ts
+│   │   ├── routes/                # Role-wise API routes
+│   │   ├── utils/qr.util.ts       # QR generation/token logic
+│   ├── prisma/
+│   │   └── schema.prisma          # DB schema
+│   ├── test.http                  # Manual API tests
+│   └── package.json
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.tsx               # Handles role-based UI
-│   │   └── components/
-│   │       └── LoginButton.tsx   # Google login button logic
-│
-└── test.http                     # Manual test cases
-```
+│   │   ├── App.tsx                # Role-based UI routing
+│   │   ├── components/            # Login, Layout, Forms
+│   │   ├── pages/                 # GatePassForm, MentorRequests, SecurityScan
+│   ├── vite.config.ts
+│   └── package.json
 
+```
+## Completed Features
+Google login (SSO)
+
+Role-based session handling
+
+Student: Apply gate pass
+
+Mentor: Approve/Reject requests
+
+QR token generation on approval
+
+Reusable test.http for API testing
 
 ## 🔜 Pending To-Do
 
-* [ ] ✅ Frontend: Build separate pages per role
+| Task                                                         | Status         |
+| ------------------------------------------------------------ | -------------- |
+| Security QR scan interface + logic                           | ⏳ In Progress |
+| Mark QR code as invalid after scan                           | ❌ Not done yet |
+| Notify mentor when student applies (email/WhatsApp optional) | ❌ Pending      |
+| HOD escalation flow (optional)                               | ❌ Pending      |
+| Prevent QR reuse at gate                                     | ❌ Pending      |
+| Fully dynamic CSV import for student–mentor mapping          | 🔜 Future      |
+| Better error feedback on role issues                         | 🔜 Future      |
 
-  * [ ] `Student`: Apply form + status history
-  * [ ] `Mentor`: Dashboard to approve/reject requests
-  * [ ] `Security`: QR Scanner UI + validation feedback
-  * [ ] `HOD`: Escalation approval panel
-* [ ] ✅ Setup proper routing/navigation (React Router)
-* [ ] 🔐 Protect frontend routes based on session & role
-* [ ] 🔄 Implement auto-refresh for new gate pass requests
-* [ ] 📷 (Optional) Capture/display student photo
-* [ ] 📦 Switch to production backend DB when deploying
-* [ ] 📈 Improve UI/UX (Tailwind + cleaner layout)
-* [ ] 📲 Add notifications (Email / WhatsApp - optional)
-* [ ] 📁 Import actual student-mentor mappings via CSV
-* [ ] 🧪 Add unit tests (backend + auth)
-* [ ] 🚀 Deployment scripts (Fly.io / Vercel / Railway)
-
----
 
 ## 👥 Seeded Accounts
 
-| Role     | Email                                                   | Notes         |
-| -------- | ------------------------------------------------------- | ------------- |
-| Mentor   | [aveenonights@gmail.com](mailto:aveenonights@gmail.com) | Sample Mentor |
-| Student  | [22071a0508@vnrvjiet.in](mailto:22071a0508@vnrvjiet.in) | Sample User   |
-| Security | [guard@vnrsecurity.com](mailto:guard@vnrsecurity.com)   | Gate Scanner  |
+| Role     | Email                    | Notes         |
+| -------- | ------------------------ | ------------- |
+| Mentor   | [aveenonights@gmail.com] | Sample Mentor |
+| Student  | [22071a0508@vnrvjiet.in] | Sample User   |
+| Student  | [22071a0504@vnrvjiet.in] | Sample User   |
+| Student  | [22071a0555@vnrvjiet.in] | Sample User   |
+| Security | [guard@vnrsecurity.com]  | Gate Scanner  |
 
 ---
 

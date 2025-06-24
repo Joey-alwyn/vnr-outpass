@@ -69,12 +69,7 @@ async function main() {
     },
   });
 
-  // ✅ Clear previous mappings for these students (optional safety step)
-  await prisma.studentMentor.deleteMany({
-    where: {
-      studentId: { in: students.map((s) => s.id) },
-    },
-  });
+
 
   // ✅ Create fresh mentor mappings
   const mappings = students.map((s) => ({
