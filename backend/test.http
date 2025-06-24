@@ -44,4 +44,7 @@ Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIz
   "comment": "enjoy pandago."
 }
 
-### get assigned metor
+
+### Get Assigned Mentor for Logged-in Student
+GET http://localhost:4000/student/mentor
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAzYWJkYjJkLTc1YjktNDc3My1hNTI4LWZmYzkxOGUxMzJhNyIsImVtYWlsIjoiMjIwNzFhMDUwOEB2bnJ2amlldC5pbiIsIm5hbWUiOiJOYWdhIFNhaSBLaXJhbiIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzUwNzQ0NzczLCJleHAiOjE3NTA4MzExNzN9.n52bj5He1C9k5g4eEoghSXnRC-K8_CsOaTIsEjVr7XI

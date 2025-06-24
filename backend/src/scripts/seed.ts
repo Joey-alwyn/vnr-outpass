@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Insert 3 mentor users
+  // ✅ Insert mentors
   await prisma.user.createMany({
     data: [
       {
@@ -24,7 +24,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // Insert 3 test students
+  // ✅ Insert students — all emails should be lowercase
   await prisma.user.createMany({
     data: [
       {
@@ -33,12 +33,12 @@ async function main() {
         role: 'STUDENT',
       },
       {
-        email: '22071A0504@vnrvjiet.in',
+        email: '22071a0504@vnrvjiet.in',
         name: 'Madhav Sarma',
         role: 'STUDENT',
       },
       {
-        email: '22071A0555@vnrvjiet.in',
+        email: '22071a0555@vnrvjiet.in',
         name: 'Salsabil Shehnaz',
         role: 'STUDENT',
       },
@@ -46,36 +46,44 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // Fetch students and mentor by email
+  // ✅ Fetch mentor and students by lowercase email
+  const mentor = await prisma.user.findUnique({
+    where: {
+      email: 'aveenonights@gmail.com',
+    },
+  });
+
+  if (!mentor) throw new Error('Mentor not found');
+
+  const studentEmails = [
+    '22071a0508@vnrvjiet.in',
+    '22071a0504@vnrvjiet.in',
+    '22071a0555@vnrvjiet.in',
+  ];
+
   const students = await prisma.user.findMany({
     where: {
       email: {
-        in: [
-          '22071a0508@vnrvjiet.in',
-          '22071A0504@vnrvjiet.in',
-          '22071A0555@vnrvjiet.in',
-        ],
+        in: studentEmails,
       },
     },
   });
 
-  const mentor = await prisma.user.findFirst({
+  // ✅ Clear previous mappings for these students (optional safety step)
+  await prisma.studentMentor.deleteMany({
     where: {
-      email: 'aveenonights@gmail.com',
-      
+      studentId: { in: students.map((s) => s.id) },
     },
   });
 
-  if (!mentor) {
-    throw new Error('Mentor not found!');
-  }
+  // ✅ Create fresh mentor mappings
+  const mappings = students.map((s) => ({
+    studentId: s.id,
+    mentorId: mentor.id,
+  }));
 
-  // Map each student to the mentor
   await prisma.studentMentor.createMany({
-    data: students.map((s) => ({
-      studentId: s.id,
-      mentorId: mentor.id,
-    })),
+    data: mappings,
     skipDuplicates: true,
   });
 
