@@ -40,7 +40,6 @@ const MentorRequests: React.FC = () => {
         alert(`Request ${action.toLowerCase()}ed`)
       }
 
-      // Remove from state immediately after response
       setReqs(prev => prev.filter(r => r.id !== id))
     } catch (e: any) {
       setError(e.response?.data?.error || 'Failed to respond')
@@ -48,23 +47,40 @@ const MentorRequests: React.FC = () => {
   }
 
   return (
-    <div>
-      <h2>Pending Requests</h2>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-      {reqs.length === 0 && <div>No pending requests.</div>}
-      <ul>
+    <div className="container py-4">
+      <h2 className="mb-4 text-center">Pending Gate Pass Requests</h2>
+
+      {error && <div className="alert alert-danger">{error}</div>}
+      {reqs.length === 0 && <div className="text-center text-muted">No pending requests.</div>}
+
+      <div className="row g-4">
         {reqs.map(r => (
-          <li key={r.id} style={{ marginBottom: '1rem' }}>
-            <strong>Student:</strong> {r.student.name} ({r.student.email})<br />
-            <strong>Reason:</strong> {r.reason}<br />
-            <strong>Status:</strong> {r.status}<br />
-            <button onClick={() => respond(r.id, 'APPROVE')}>Approve</button>
-            <button onClick={() => respond(r.id, 'REJECT')} style={{ marginLeft: '0.5rem' }}>
-              Reject
-            </button>
-          </li>
+          <div className="col-md-6" key={r.id}>
+            <div className="card shadow-sm h-100">
+              <div className="card-body">
+                <h5 className="card-title">{r.student.name}</h5>
+                <h6 className="card-subtitle mb-2 text-muted">{r.student.email}</h6>
+                <p className="card-text"><strong>Reason:</strong> {r.reason}</p>
+                <p className="card-text"><strong>Status:</strong> {r.status}</p>
+                <div className="d-flex justify-content-end gap-2">
+                  <button
+                    className="btn btn-success"
+                    onClick={() => respond(r.id, 'APPROVE')}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => respond(r.id, 'REJECT')}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   )
 }

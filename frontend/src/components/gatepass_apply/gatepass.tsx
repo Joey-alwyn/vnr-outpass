@@ -1,7 +1,6 @@
-// src/components/GatePassForm.tsx
 import React, { useState } from 'react'
-import { api } from '../../api'
 import { useNavigate } from 'react-router-dom'
+import { api } from '../../api'
 
 interface GatePassData {
   reason: string
@@ -25,58 +24,65 @@ const GatePassForm: React.FC = () => {
     setLoading(true)
     try {
       await api.post('/student/apply', data)
-      nav(`/student/status`)
+      nav('/student/status')
     } catch (e: any) {
       setError(e.response?.data?.error || 'Submission failed')
-    } finally { 
+    } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <h3>Apply for Gate Pass</h3>
+    <div className="container d-flex justify-content-center align-items-center vh-100 bg-light">
+      <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow" style={{ maxWidth: 480, width: '100%' }}>
+        <h4 className="text-center mb-4">Apply for Gate Pass</h4>
 
-      <label>
-        Reason:
-        <textarea
-          name="reason"
-          value={data.reason}
-          onChange={handleChange}
-          rows={3}
-          required
-          style={{ width: '100%' }}
-        />
-      </label>
+        <div className="mb-3">
+          <label htmlFor="reason" className="form-label">Reason</label>
+          <textarea
+            id="reason"
+            name="reason"
+            value={data.reason}
+            onChange={handleChange}
+            rows={3}
+            required
+            className="form-control"
+          />
+        </div>
 
-      <label>
-        From:
-        <input
-          type="datetime-local"
-          name="fromDate"
-          value={data.fromDate}
-          onChange={handleChange}
-          required
-        />
-      </label>
+        <div className="mb-3">
+          <label htmlFor="fromDate" className="form-label">From</label>
+          <input
+            type="datetime-local"
+            id="fromDate"
+            name="fromDate"
+            value={data.fromDate}
+            onChange={handleChange}
+            required
+            className="form-control"
+          />
+        </div>
 
-      <label>
-        To:
-        <input
-          type="datetime-local"
-          name="toDate"
-          value={data.toDate}
-          onChange={handleChange}
-          required
-        />
-      </label>
+        <div className="mb-3">
+          <label htmlFor="toDate" className="form-label">To</label>
+          <input
+            type="datetime-local"
+            id="toDate"
+            name="toDate"
+            value={data.toDate}
+            onChange={handleChange}
+            required
+            className="form-control"
+          />
+        </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <div className="alert alert-danger py-2">{error}</div>}
 
-      <button type="submit" disabled={loading} style={{ padding: '0.5rem', cursor: loading ? 'not-allowed' : 'pointer' }}>
-        {loading ? 'Submitting...' : 'Submit'}
-      </button>
-    </form>
+        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+          {loading ? 'Submitting...' : 'Submit'}
+        </button>
+      </form>
+    </div>
   )
 }
 

@@ -27,7 +27,7 @@ export async function getMentorRequests(req: Request, res: Response) {
 export async function respondToRequest(req: Request, res: Response): Promise<any> {
   const mentor = (req as any).user
   const { gatePassId, action } = req.body
-
+  console.log('Received respondToRequest request:', req.body);
   if (!gatePassId || !['APPROVE', 'REJECT'].includes(action)) {
     return res.status(400).json({ error: 'Invalid request body' })
   }
@@ -35,7 +35,7 @@ export async function respondToRequest(req: Request, res: Response): Promise<any
   try {
     const pass = await prisma.gatePass.findUnique({ where: { id: gatePassId } })
 
-    if (!pass || pass.mentorId !== mentor.sub) {
+    if (!pass || pass.mentorId !== mentor.id) {
       return res.status(404).json({ error: 'Unauthorized or not found' })
     }
 
