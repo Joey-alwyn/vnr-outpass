@@ -24,7 +24,7 @@ const GatePassForm: React.FC = () => {
     e.preventDefault()
     setLoading(true)
     try {
-      api.post('/student/apply', data)
+      await api.post('/student/apply', data)
       nav(`/student/status`)
     } catch (e: any) {
       setError(e.response?.data?.error || 'Submission failed')

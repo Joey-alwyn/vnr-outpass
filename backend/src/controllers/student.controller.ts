@@ -6,7 +6,7 @@ import QRCode from 'qrcode';
 export async function applyGatePass(req: Request, res: Response):Promise<any> {
   const user = (req as any).user;
   const { reason } = req.body;
-
+  console.log('reason', reason);
   if (!reason || reason.trim().length < 3) {
     return res.status(400).json({ error: 'Reason must be meaningful.' });
   }
@@ -21,11 +21,12 @@ export async function applyGatePass(req: Request, res: Response):Promise<any> {
     const gatePass = await prisma.gatePass.create({
       data: {
         reason,
-        studentId: user.sub,
-        mentorId: mentorMap.mentorId,
         status: 'PENDING',
+        student: { connect: { id: user.id } },
+        mentor:  { connect: { id: mentorMap.mentorId } },
       },
     });
+
 
     res.status(201).json({ message: 'Submitted', gatePass });
   } catch (err) {
@@ -52,6 +53,35 @@ export async function getStudentStatus(req: Request, res: Response) {
     res.json({ passes: enhanced });
   } catch (err) {
     console.error('Status fetch error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+export async function getAssignedMentor(req: Request, res: Response):Promise<any> {
+  const user = (req as any).user;
+
+  try {
+    const mapping = await prisma.studentMentor.findUnique({
+      where: { studentId: user.id },
+      include: { mentor: true },
+    });
+
+    if (!mapping) {
+      return res.status(404).json({ error: 'No mentor assigned' });
+    }
+
+    const mentor = mapping.mentor;
+
+    res.json({
+      mentor: {
+        id: mentor.id,
+        name: mentor.name,
+        email: mentor.email,
+        role: mentor.role,
+      },
+    });
+  } catch (err) {
+    console.error('Mentor fetch error:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
