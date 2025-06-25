@@ -6,6 +6,7 @@
     "moduleResolution": "node",
     "target": "ES2020",
     "strict": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "typeRoots": ["./types", "./node_modules/@types"]
   }
 }

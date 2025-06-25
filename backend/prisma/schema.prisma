@@ -48,6 +48,7 @@ model GatePass {
   qrToken        String?        @unique
   qrValid        Boolean        @default(false)
   qrGeneratedAt  DateTime?
+  scannedAt      DateTime?      // ✅ Added to log scan time
 
   student        User           @relation("StudentGatePasses", fields: [studentId], references: [id], onDelete: Cascade)
   studentId      String

@@ -48,3 +48,10 @@ Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5Mzg3ODIz
 ### Get Assigned Mentor for Logged-in Student
 GET http://localhost:4000/student/mentor
 Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAzYWJkYjJkLTc1YjktNDc3My1hNTI4LWZmYzkxOGUxMzJhNyIsImVtYWlsIjoiMjIwNzFhMDUwOEB2bnJ2amlldC5pbiIsIm5hbWUiOiJOYWdhIFNhaSBLaXJhbiIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzUwNzQ0NzczLCJleHAiOjE3NTA4MzExNzN9.n52bj5He1C9k5g4eEoghSXnRC-K8_CsOaTIsEjVr7XI
+
+
+### Test working QR scan route
+GET http://localhost:4000/api/security/scan/1	3be7d23e-4271-4f74-a06d-93da98f7a8a2/ABPTUWA2W4
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY2NGI2ZjhjLTZmZGMtNGM5Zi05ZGUyLTEyMzQ1Njc4OWFiYyIsImVtYWlsIjoia2lsbHVheGtpbGx1YTAwQGdtYWlsLmNvbSIsIm5hbWUiOiJTZWN1cml0eV9HdWFyZCIsInJvbGUiOiJTRUNVUklUWSIsImlhdCI6MTc1MDc5MzUxMiwiZXhwIjoxNzUwODc5OTEyfQ.157o7Ft-0rwm8Y2snJinwpSkyWgT67X5GAdM1f6-OZ0
+# (You can copy full cookie from Chrome devtools -> Application -> Cookies)
+

@@ -8,7 +8,7 @@ export async function getMentorRequests(req: Request, res: Response) {
 
   try {
     const requests = await prisma.gatePass.findMany({
-      where: { mentorId: mentor.sub, status: GatePassStatus.PENDING },
+      where: { mentorId: mentor.id, status: GatePassStatus.PENDING },
       include: {
         student: {
           select: { name: true, email: true }

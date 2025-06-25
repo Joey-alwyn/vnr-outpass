@@ -1,7 +1,16 @@
 import { Router } from 'express';
 import { scanQRCode } from '../controllers/security.controller';
-import { isAuthenticated, requireRole } from '../auth';
+import { requireRole } from '../middlewares/auth.middleware';
+import { Role } from '@prisma/client';
 
-export const securityRoutes = Router();
+const router = Router();
+// in security.routes.ts
+router.post('/scan-test', (req, res) => {
+  console.log('Scan test hit!');
+  res.json({ message: 'Scan test route works!' });
+});
 
-securityRoutes.get('/scan/:passId/:token', isAuthenticated, requireRole('SECURITY'), scanQRCode);
+// ✅ Fix: use GET and include route params
+router.get('/scan/:passId/:token', requireRole(Role.SECURITY), scanQRCode);
+
+export default router;

@@ -1,7 +1,9 @@
+// backend/src/auth.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { COOKIE_NAME, GOOGLE_CLIENT_ID } from '../config';
 import { OAuth2Client } from 'google-auth-library';
+import { Role } from '@prisma/client';
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
@@ -23,25 +25,52 @@ export function issueSessionCookie(res: Response, payload: object) {
   });
 }
 
-export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+export function isAuthenticated(req: Request, res: Response, next: NextFunction): void {
   const token = req.cookies[COOKIE_NAME];
-  if (!token) return res.status(401).json({ error: 'Unauthenticated' });
+  if (!token) {
+    res.status(401).json({ error: 'Unauthenticated' });
+    return;
+  }
 
   try {
-    const user = jwt.verify(token, process.env.JWT_SECRET!);
-    (req as any).user = user;
+    const user = jwt.verify(token, process.env.JWT_SECRET!) as {
+      id: string;
+      email: string;
+      name: string;
+      role: Role;
+    };
+    req.user = user; // ✅ this works if types are extended (see below)
     next();
   } catch {
     res.status(401).json({ error: 'Invalid token' });
   }
 }
 
-export function requireRole(role: 'STUDENT' | 'MENTOR' | 'SECURITY') {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).user;
-    if (user?.role !== role) {
-      return res.status(403).json({ error: 'Forbidden - role mismatch' });
+export function requireRole(role: Role) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const token = req.cookies[COOKIE_NAME];
+    if (!token) {
+      res.status(401).json({ error: 'Unauthenticated' });
+      return;
     }
-    next();
+
+    try {
+      const user = jwt.verify(token, process.env.JWT_SECRET!) as {
+        id: string;
+        email: string;
+        name: string;
+        role: Role;
+      };
+      req.user = user;
+
+      if (user.role !== role) {
+        res.status(403).json({ error: 'Forbidden - role mismatch' });
+        return;
+      }
+
+      next();
+    } catch {
+      res.status(401).json({ error: 'Invalid token' });
+    }
   };
 }

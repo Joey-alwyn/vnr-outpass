@@ -17,11 +17,10 @@ const App: React.FC = () => (
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
-
           <Route
             path="/apply"
             element={
-              <RequireRole roles={[ 'STUDENT' ]}>
+              <RequireRole roles={['STUDENT']}>
                 <GatePassForm />
               </RequireRole>
             }
@@ -29,16 +28,15 @@ const App: React.FC = () => (
           <Route
             path="/student/status"
             element={
-              <RequireRole roles={[ 'STUDENT' ]}>
+              <RequireRole roles={['STUDENT']}>
                 <StudentStatus />
               </RequireRole>
             }
           />
-
           <Route
             path="/mentor"
             element={
-              <RequireRole roles={[ 'MENTOR' ]}>
+              <RequireRole roles={['MENTOR']}>
                 <MentorRequests />
               </RequireRole>
             }
@@ -46,7 +44,7 @@ const App: React.FC = () => (
           <Route
             path="/security"
             element={
-              <RequireRole roles={[ 'SECURITY' ]}>
+              <RequireRole roles={['SECURITY']}>
                 <SecurityScan />
               </RequireRole>
             }
@@ -54,12 +52,11 @@ const App: React.FC = () => (
           <Route
             path="/hod"
             element={
-              <RequireRole roles={[ 'HOD' ]}>
+              <RequireRole roles={['HOD']}>
                 <HodPanel />
               </RequireRole>
             }
           />
-
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>

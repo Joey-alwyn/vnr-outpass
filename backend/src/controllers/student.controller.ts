@@ -61,7 +61,8 @@ export async function getStudentStatus(req: Request, res: Response) {
     const enhanced = await Promise.all(
       passes.map(async (p) => {
         if (p.status === 'APPROVED' && p.qrToken) {
-          const qr = await QRCode.toDataURL(p.qrToken);
+          const url = `http://localhost:4000/api/security/scan/${p.id}/${p.qrToken}`;
+          const qr = await QRCode.toDataURL(url);
           return { ...p, qr };
         }
         return { ...p, qr: null };
@@ -74,6 +75,7 @@ export async function getStudentStatus(req: Request, res: Response) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
 
 export async function getAssignedMentor(req: Request, res: Response): Promise<any> {
   const user = (req as any).user;
