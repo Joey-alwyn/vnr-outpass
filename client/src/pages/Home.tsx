@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom'
 const Home: React.FC = () => {
   const { user, loading } = useAuth()
   const [latestPass, setLatestPass] = useState<any>(null)
-  const [error, setError] = useState<string | null>(null)
   const [showQr, setShowQr] = useState(false)
   const nav = useNavigate()
 
@@ -18,8 +17,9 @@ const Home: React.FC = () => {
       try {
         const res = await api.get('/student/status')
         setLatestPass(res.data.passes[0] || null)
-      } catch (e) {
-        setError('Failed to fetch latest gate pass.')
+      } catch {
+        // Optional: Log or handle error here
+        console.warn('Failed to fetch latest gate pass.')
       }
     }
 

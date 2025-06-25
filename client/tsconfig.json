@@ -7,9 +7,6 @@
   "scripts": {
   "dev": "vite",
   "build": "vite build"
-},
-  "compilerOptions": {
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
-  }
+}
+
 }

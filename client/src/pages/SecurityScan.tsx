@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { api } from '../api'
 
 const SecurityScan: React.FC = () => {
-  const qrRef = useRef(null)
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
