@@ -1,6 +1,7 @@
 import { OAuth2Client } from 'google-auth-library';
 import { sign, verify } from 'jsonwebtoken';
 import { GOOGLE_CLIENT_ID, JWT_SECRET, JWT_EXPIRES_IN, COOKIE_NAME, } from './config';
+// console.log('🔐 Loaded JWT_SECRET:', JWT_SECRET);
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 /** Verify the Google ID token and return its payload */
 export async function verifyGoogleIdToken(idToken) {
@@ -25,6 +26,7 @@ export function issueSessionCookie(res, payload) {
 /** Middleware to protect routes by verifying our JWT cookie */
 export function isAuthenticated(req, res, next) {
     const token = req.cookies[COOKIE_NAME];
+    // console.log('🍪 Received token:', token);
     if (!token) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
@@ -34,7 +36,8 @@ export function isAuthenticated(req, res, next) {
         req.user = data;
         next();
     }
-    catch {
+    catch (err) {
+        console.error('JWT verification failed:', err);
         res.status(401).json({ error: 'Invalid session' });
     }
 }
