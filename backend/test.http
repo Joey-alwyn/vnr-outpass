@@ -10,10 +10,10 @@ Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwM2FiZGIy
 ### Student applies for gate pass
 POST http://localhost:4000/student/apply
 Content-Type: application/json
-Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwM2FiZGIyZC03NWI5LTQ3NzMtYTUyOC1mZmM5MThlMTMyYTciLCJlbWFpbCI6IjIyMDcxYTA1MDhAdm5ydmppZXQuaW4iLCJuYW1lIjoiTmFnYSBTYWkgS2lyYW4iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0OTY1NjA3MywiZXhwIjoxNzUwMjYwODczfQ.H9jsNp7LKB0dp7ADo7QqsW-ezttG9kH2b3CzHXWfBg4
+Cookie: gatepass_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU5MTQyYmMyLTFiOTYtNDEzMy1iNzRkLWIwZmFkNGE2NzFlYyIsImVtYWlsIjoiMjIwNzFhMDUwOEB2bnJ2amlldC5pbiIsIm5hbWUiOiJOYWdhIFNhaSBLaXJhbiIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzUwNzY5MTc5LCJleHAiOjE3NTA4NTU1Nzl9._O-bs1riiGuqFErNCyUvdXMordD4lbnQ5bjdFM3ubkc
 
 {
-  "reason": "I go tirupati"
+  "reason": "valorant contest"
 }
 
 ### Mentor views pending requests
