@@ -23,18 +23,16 @@ enum GatePassStatus {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  role      Role
-  createdAt DateTime @default(now())
+  id              String   @id @default(uuid())
+  email           String   @unique
+  name            String
+  role            Role
+  createdAt       DateTime @default(now())
 
-  // ✅ Relationships
-  gatePasses       GatePass[]       @relation("StudentGatePasses")
-  passesToReview   GatePass[]       @relation("MentorGatePasses")
-
-  students         StudentMentor[]  @relation("MentorMap")
-  mentors          StudentMentor[]  @relation("StudentMap")
+  gatePasses      GatePass[]       @relation("StudentGatePasses")
+  passesToReview  GatePass[]       @relation("MentorGatePasses")
+  students        StudentMentor[]  @relation("MentorMap")
+  mentors         StudentMentor[]  @relation("StudentMap")
 }
 
 model GatePass {
@@ -44,11 +42,10 @@ model GatePass {
   appliedAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  // QR code fields
   qrToken        String?        @unique
   qrValid        Boolean        @default(false)
   qrGeneratedAt  DateTime?
-  scannedAt      DateTime?      // ✅ Added to log scan time
+  scannedAt      DateTime?
 
   student        User           @relation("StudentGatePasses", fields: [studentId], references: [id], onDelete: Cascade)
   studentId      String
@@ -66,5 +63,5 @@ model StudentMentor {
   mentor     User     @relation("MentorMap", fields: [mentorId], references: [id])
   mentorId   String
 
-  @@unique([studentId]) // One student can have only one mentor
+  @@unique([studentId])
 }
