@@ -4,9 +4,4 @@
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
   ],
-  "scripts": {
-  "dev": "vite",
-  "build": "vite build"
-}
-
 }
