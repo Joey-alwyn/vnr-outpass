@@ -1,7 +1,11 @@
 {
+  "name": "vnr-outpass",
+  "version": "1.0.0",
   "scripts": {
-    "build:client": "cd client && npm install && npm run build",
-    "build:server": "cd server && npm install && npm run build",
-    "start:server": "cd server && npm run start"
+    "start": "node server/index.js",
+    "heroku-postbuild": "cd client && npm install && npm run build"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
