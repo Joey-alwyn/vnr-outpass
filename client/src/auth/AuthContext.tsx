@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/check-auth')
+    api.get('/auth/check-auth')
       .then(res => setUser(res.data.user))
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
