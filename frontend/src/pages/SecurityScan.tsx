@@ -7,30 +7,30 @@ const SecurityScan: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    const html5QrCode = new Html5Qrcode('reader')
-    Html5Qrcode.getCameras().then((devices) => {
-      if (devices && devices.length) {
-        html5QrCode.start(
-          devices[0].id,
-          { fps: 10, qrbox: 250 },
-          (decodedText) => {
-            html5QrCode.stop()
-            handleScan(decodedText)
-          },
-          (errorMessage) => console.log('QR scan error:', errorMessage)
-        )
-      }
+useEffect(() => {
+  const html5QrCode = new Html5Qrcode("reader")
+
+  html5QrCode
+    .start(
+      { facingMode: "environment" }, 
+      { fps: 10, qrbox: 250 },
+      async (decodedText) => {
+        await html5QrCode.stop()
+        handleScan(decodedText)
+      },
+      (errorMessage) => console.log("QR scan error:", errorMessage)
+    )
+    .catch(err => {
+      console.error("Camera start error:", err)
+      setError("Unable to access camera")
     })
 
-    return () => {
-      html5QrCode
-        .stop()
-        .catch(() => {
-          /* ignore if already stopped */
-        })
-    }
-  }, [])
+  return () => {
+    html5QrCode
+      .stop()
+      .catch(() => {})
+  }
+}, [])
 
   const handleScan = async (url: string) => {
     setLoading(true)
