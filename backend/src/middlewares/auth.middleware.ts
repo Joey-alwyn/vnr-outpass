@@ -19,8 +19,8 @@ export function issueSessionCookie(res: Response, payload: object) {
   const token = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1d' });
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: 24 * 60 * 60 * 1000,
   });
 }

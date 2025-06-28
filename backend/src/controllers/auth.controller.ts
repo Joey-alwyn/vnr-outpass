@@ -39,8 +39,8 @@ export async function googleLogin(req: Request, res: Response):Promise<any> {
 export function logout(req: Request, res: Response) {
   res.clearCookie(COOKIE_NAME, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
   });
   res.json({ message: 'Logged out' });
 }
