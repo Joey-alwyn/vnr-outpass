@@ -1,11 +1,15 @@
-import { prisma } from '../prisma/client';
-import { generateQRCode, generateToken } from '../utils/qr.util';
-import { GatePassStatus } from '@prisma/client'; // ✅ enum import
-export async function getMentorRequests(req, res) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getMentorRequests = getMentorRequests;
+exports.respondToRequest = respondToRequest;
+const client_1 = require("../prisma/client");
+const qr_util_1 = require("../utils/qr.util");
+const client_2 = require("@prisma/client"); // ✅ enum import
+async function getMentorRequests(req, res) {
     const mentor = req.user;
     try {
-        const requests = await prisma.gatePass.findMany({
-            where: { mentorId: mentor.id, status: GatePassStatus.PENDING },
+        const requests = await client_1.prisma.gatePass.findMany({
+            where: { mentorId: mentor.id, status: client_2.GatePassStatus.PENDING },
             include: {
                 student: {
                     select: { name: true, email: true }
@@ -20,7 +24,7 @@ export async function getMentorRequests(req, res) {
         res.status(500).json({ error: 'Internal server error' });
     }
 }
-export async function respondToRequest(req, res) {
+async function respondToRequest(req, res) {
     const mentor = req.user;
     const { gatePassId, action } = req.body;
     console.log('Received respondToRequest request:', req.body);
@@ -28,7 +32,7 @@ export async function respondToRequest(req, res) {
         return res.status(400).json({ error: 'Invalid request body' });
     }
     try {
-        const pass = await prisma.gatePass.findUnique({ where: { id: gatePassId } });
+        const pass = await client_1.prisma.gatePass.findUnique({ where: { id: gatePassId } });
         if (!pass || pass.mentorId !== mentor.id) {
             return res.status(404).json({ error: 'Unauthorized or not found' });
         }
@@ -36,15 +40,15 @@ export async function respondToRequest(req, res) {
         let token = null;
         let valid = false;
         if (action === 'APPROVE') {
-            token = generateToken();
-            qr = await generateQRCode(gatePassId, token);
+            token = (0, qr_util_1.generateToken)();
+            qr = await (0, qr_util_1.generateQRCode)(gatePassId, token);
             valid = true;
         }
         const statusMap = {
-            APPROVE: GatePassStatus.APPROVED,
-            REJECT: GatePassStatus.REJECTED
+            APPROVE: client_2.GatePassStatus.APPROVED,
+            REJECT: client_2.GatePassStatus.REJECTED
         };
-        const updated = await prisma.gatePass.update({
+        const updated = await client_1.prisma.gatePass.update({
             where: { id: gatePassId },
             data: {
                 status: statusMap[action], // ✅ safe enum cast

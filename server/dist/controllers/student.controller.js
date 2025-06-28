@@ -1,6 +1,14 @@
-import { prisma } from '../prisma/client';
-import QRCode from 'qrcode';
-export async function applyGatePass(req, res) {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.applyGatePass = applyGatePass;
+exports.getStudentStatus = getStudentStatus;
+exports.getAssignedMentor = getAssignedMentor;
+const client_1 = require("../prisma/client");
+const qrcode_1 = __importDefault(require("qrcode"));
+async function applyGatePass(req, res) {
     const user = req.user;
     const { reason } = req.body;
     console.log('reason', reason);
@@ -8,7 +16,7 @@ export async function applyGatePass(req, res) {
         return res.status(400).json({ error: 'Reason must be meaningful.' });
     }
     try {
-        const mentorMap = await prisma.studentMentor.findFirst({
+        const mentorMap = await client_1.prisma.studentMentor.findFirst({
             where: {
                 student: {
                     email: user.email.toLowerCase(),
@@ -21,7 +29,7 @@ export async function applyGatePass(req, res) {
         if (!mentorMap?.mentor?.email) {
             return res.status(400).json({ error: 'No mentor assigned' });
         }
-        const gatePass = await prisma.gatePass.create({
+        const gatePass = await client_1.prisma.gatePass.create({
             data: {
                 reason,
                 status: 'PENDING',
@@ -44,16 +52,16 @@ export async function applyGatePass(req, res) {
         res.status(500).json({ error: 'Server error' });
     }
 }
-export async function getStudentStatus(req, res) {
+async function getStudentStatus(req, res) {
     try {
-        const passes = await prisma.gatePass.findMany({
+        const passes = await client_1.prisma.gatePass.findMany({
             where: { student: { email: req.user.email.toLowerCase() } },
             orderBy: { appliedAt: 'desc' },
         });
         const enhanced = await Promise.all(passes.map(async (p) => {
             if (p.status === 'APPROVED' && p.qrToken) {
-                const url = `http://localhost:4000/api/security/scan/${p.id}/${p.qrToken}`;
-                const qr = await QRCode.toDataURL(url);
+                const url = `http:// /api/security/scan/${p.id}/${p.qrToken}`;
+                const qr = await qrcode_1.default.toDataURL(url);
                 return { ...p, qr };
             }
             return { ...p, qr: null };
@@ -65,10 +73,10 @@ export async function getStudentStatus(req, res) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
-export async function getAssignedMentor(req, res) {
+async function getAssignedMentor(req, res) {
     const user = req.user;
     try {
-        const mapping = await prisma.studentMentor.findFirst({
+        const mapping = await client_1.prisma.studentMentor.findFirst({
             where: {
                 student: {
                     email: user.email.toLowerCase(),

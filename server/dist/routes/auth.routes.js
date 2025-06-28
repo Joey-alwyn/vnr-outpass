@@ -1,7 +1,10 @@
-import { Router } from 'express';
-import { googleLogin, logout, checkAuth } from '../controllers/auth.controller';
-import { isAuthenticated } from '../auth';
-export const authRoutes = Router();
-authRoutes.post('/google', googleLogin);
-authRoutes.get('/check-auth', isAuthenticated, checkAuth);
-authRoutes.post('/logout', logout);
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.authRoutes = void 0;
+const express_1 = require("express");
+const auth_controller_1 = require("../controllers/auth.controller");
+const auth_1 = require("../auth");
+exports.authRoutes = (0, express_1.Router)();
+exports.authRoutes.post('/google', auth_controller_1.googleLogin);
+exports.authRoutes.get('/check-auth', auth_1.isAuthenticated, auth_controller_1.checkAuth);
+exports.authRoutes.post('/logout', auth_controller_1.logout);

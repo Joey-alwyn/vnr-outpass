@@ -1,7 +1,10 @@
-import { Router } from 'express';
-import { applyGatePass, getStudentStatus, getAssignedMentor } from '../controllers/student.controller';
-import { isAuthenticated, requireRole } from '../auth';
-export const studentRoutes = Router();
-studentRoutes.post('/apply', isAuthenticated, requireRole('STUDENT'), applyGatePass);
-studentRoutes.get('/status', isAuthenticated, requireRole('STUDENT'), getStudentStatus);
-studentRoutes.get('/mentor', isAuthenticated, requireRole('STUDENT'), getAssignedMentor);
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.studentRoutes = void 0;
+const express_1 = require("express");
+const student_controller_1 = require("../controllers/student.controller");
+const auth_1 = require("../auth");
+exports.studentRoutes = (0, express_1.Router)();
+exports.studentRoutes.post('/apply', auth_1.isAuthenticated, (0, auth_1.requireRole)('STUDENT'), student_controller_1.applyGatePass);
+exports.studentRoutes.get('/status', auth_1.isAuthenticated, (0, auth_1.requireRole)('STUDENT'), student_controller_1.getStudentStatus);
+exports.studentRoutes.get('/mentor', auth_1.isAuthenticated, (0, auth_1.requireRole)('STUDENT'), student_controller_1.getAssignedMentor);
