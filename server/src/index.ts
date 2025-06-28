@@ -14,21 +14,10 @@ dotenv.config();
 
 const app = express();
 
-//Allow both localhost and Vercel frontend
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://vnr-outpass-frontend.vercel.app',
-];
-
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('CORS origin not allowed'));
-  },
-  credentials: true,
-}));
+  origin: '*', // Not secure for production
+  credentials: true
+}))
 
 app.use(express.json());
 app.use(cookieParser());
