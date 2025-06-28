@@ -13,10 +13,22 @@ import securityRoutes from './routes/security.routes'; // ✅ correct import
 dotenv.config();
 const app = express();
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://vnr-outpass-frontend.vercel.app',
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: (incomingOrigin, cb) => {
+    if (!incomingOrigin || allowedOrigins.includes(incomingOrigin)) {
+      return cb(null, true);
+    }
+    cb(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
+
+
 app.use(express.json());
 app.use(cookieParser());
 
