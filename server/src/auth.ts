@@ -61,11 +61,12 @@ export function isAuthenticated(
 
 /** ✅ Role-based access control */
 export function requireRole(role: 'STUDENT' | 'MENTOR' | 'HOD' | 'SECURITY') {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const user = (req as any).user;
 
     if (!user || user.role !== role) {
-      return res.status(403).json({ error: 'Forbidden: insufficient role' });
+      res.status(403).json({ error: 'Forbidden: insufficient role' });
+      return;
     }
 
     next();

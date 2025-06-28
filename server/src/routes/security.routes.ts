@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { scanQRCode } from '../controllers/security.controller';
 import { requireRole } from '../middlewares/auth.middleware';
-import { Role } from '@prisma/client';
 
 const router = Router();
 // in security.routes.ts
@@ -11,6 +10,6 @@ router.post('/scan-test', (req, res) => {
 });
 
 // ✅ Fix: use GET and include route params
-router.get('/scan/:passId/:token', requireRole(Role.SECURITY), scanQRCode);
+router.get('/scan/:passId/:token', requireRole('SECURITY'), scanQRCode);
 
 export default router;

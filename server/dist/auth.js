@@ -7,9 +7,8 @@ exports.requireRole = requireRole;
 const google_auth_library_1 = require("google-auth-library");
 const jsonwebtoken_1 = require("jsonwebtoken");
 const config_1 = require("./config");
-// console.log('🔐 Loaded JWT_SECRET:', JWT_SECRET);
 const client = new google_auth_library_1.OAuth2Client(config_1.GOOGLE_CLIENT_ID);
-/** Verify the Google ID token and return its payload */
+/** ✅ Verify Google ID Token */
 async function verifyGoogleIdToken(idToken) {
     const ticket = await client.verifyIdToken({
         idToken,
@@ -17,29 +16,28 @@ async function verifyGoogleIdToken(idToken) {
     });
     return ticket.getPayload();
 }
-/** Issue our own JWT and set it as an HttpOnly cookie */
+/** ✅ Issue signed JWT in a secure HTTP-only cookie */
 function issueSessionCookie(res, payload) {
-    // Cast options to SignOptions so TS knows expiresIn is valid
-    const options = { expiresIn: config_1.JWT_EXPIRES_IN };
-    const token = (0, jsonwebtoken_1.sign)(payload, config_1.JWT_SECRET, options);
+    const token = (0, jsonwebtoken_1.sign)(payload, config_1.JWT_SECRET, {
+        expiresIn: config_1.JWT_EXPIRES_IN,
+    });
     res.cookie(config_1.COOKIE_NAME, token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production', // ✅ only in prod
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'strict',
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     });
 }
-/** Middleware to protect routes by verifying our JWT cookie */
+/** ✅ Middleware to check cookie JWT and populate req.user */
 function isAuthenticated(req, res, next) {
-    const token = req.cookies[config_1.COOKIE_NAME];
-    // console.log('🍪 Received token:', token);
+    const token = req.cookies?.[config_1.COOKIE_NAME];
     if (!token) {
-        res.status(401).json({ error: 'Unauthorized' });
+        res.status(401).json({ error: 'Unauthorized: no session cookie' });
         return;
     }
     try {
-        const data = (0, jsonwebtoken_1.verify)(token, config_1.JWT_SECRET);
-        req.user = data;
+        const decoded = (0, jsonwebtoken_1.verify)(token, config_1.JWT_SECRET);
+        req.user = decoded;
         next();
     }
     catch (err) {
@@ -47,6 +45,7 @@ function isAuthenticated(req, res, next) {
         res.status(401).json({ error: 'Invalid session' });
     }
 }
+/** ✅ Role-based access control */
 function requireRole(role) {
     return (req, res, next) => {
         const user = req.user;
