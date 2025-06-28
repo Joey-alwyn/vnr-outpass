@@ -1,4 +1,4 @@
-import 'express'; // Keeps global types in Express apps
+import 'express';
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -14,26 +14,29 @@ dotenv.config();
 
 const app = express();
 
+// 🔐 Strict CORS for production
+const ALLOWED_ORIGIN = 'https://vnr-outpass-frontend.vercel.app';
+
 app.use(cors({
-  origin: '*', // Not secure for production
-  credentials: true
-}))
+  origin: ALLOWED_ORIGIN,
+  credentials: true,
+}));
 
 app.use(express.json());
 app.use(cookieParser());
 
-//Health check
+// Health check
 app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'OK' });
 });
 
-//Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/mentor', mentorRoutes);
 app.use('/api/security', securityRoutes);
 
-//Global error handler
+// Global error handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Uncaught error:', err);
   res.status(500).json({ error: err.message || 'Internal Server Error' });
