@@ -1,31 +1,34 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { api } from '../api'
 
 const SecurityScan: React.FC = () => {
-  const qrRef = useRef(null)
   const [result, setResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const html5QrCode = new Html5Qrcode("reader")
-    Html5Qrcode.getCameras().then(devices => {
+    const html5QrCode = new Html5Qrcode('reader')
+    Html5Qrcode.getCameras().then((devices) => {
       if (devices && devices.length) {
         html5QrCode.start(
           devices[0].id,
           { fps: 10, qrbox: 250 },
-          async (decodedText) => {
+          (decodedText) => {
             html5QrCode.stop()
             handleScan(decodedText)
           },
-          (errorMessage) => console.log("QR scan error:", errorMessage)
+          (errorMessage) => console.log('QR scan error:', errorMessage)
         )
       }
     })
 
     return () => {
-      Html5Qrcode.getCameras().then(() => html5QrCode.stop().catch(() => {}))
+      html5QrCode
+        .stop()
+        .catch(() => {
+          /* ignore if already stopped */
+        })
     }
   }, [])
 
@@ -47,10 +50,12 @@ const SecurityScan: React.FC = () => {
   return (
     <div className="container py-4">
       <h3 className="text-center mb-3">Security QR Scanner</h3>
-      <div id="reader" style={{ width: '100%' }}></div>
+      <div id="reader" style={{ width: '100%' }} />
 
       {loading && <p className="text-center mt-3">Validating...</p>}
-      {error && <div className="alert alert-danger mt-3 text-center">{error}</div>}
+      {error && (
+        <div className="alert alert-danger mt-3 text-center">{error}</div>
+      )}
       {result && (
         <div className="alert alert-success mt-3">
           <h5>Scan Success</h5>

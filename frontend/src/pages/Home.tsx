@@ -7,7 +7,8 @@ import { useNavigate } from 'react-router-dom'
 const Home: React.FC = () => {
   const { user, loading } = useAuth()
   const [latestPass, setLatestPass] = useState<any>(null)
-  const [error, setError] = useState<string | null>(null)
+  // no need to keep `error` around if we don't display it:
+  const [, setError] = useState<string | null>(null)
   const [showQr, setShowQr] = useState(false)
   const nav = useNavigate()
 
@@ -18,7 +19,7 @@ const Home: React.FC = () => {
       try {
         const res = await api.get('/student/status')
         setLatestPass(res.data.passes[0] || null)
-      } catch (e) {
+      } catch {
         setError('Failed to fetch latest gate pass.')
       }
     }
@@ -39,9 +40,17 @@ const Home: React.FC = () => {
   if (!user) {
     return (
       <div className="d-flex justify-content-center">
-        <div className="px-3 py-4 bg-white border rounded shadow-sm w-100" style={{ maxWidth: '360px' }}>
-          <h4 className="mb-2 text-primary text-center">Welcome to VNR OutPass</h4>
-          <p className="text-muted text-center mb-3" style={{ fontSize: '0.9rem' }}>
+        <div
+          className="px-3 py-4 bg-white border rounded shadow-sm w-100"
+          style={{ maxWidth: '360px' }}
+        >
+          <h4 className="mb-2 text-primary text-center">
+            Welcome to VNR OutPass
+          </h4>
+          <p
+            className="text-muted text-center mb-3"
+            style={{ fontSize: '0.9rem' }}
+          >
             Login with your college Google account to continue.
           </p>
           <LoginButton />
@@ -56,9 +65,16 @@ const Home: React.FC = () => {
         <div className="card shadow-sm mb-4">
           <div className="card-body">
             <h5 className="card-title">Your Latest Gate Pass</h5>
-            <p><strong>Reason:</strong> {latestPass.reason}</p>
-            <p><strong>Applied At:</strong> {new Date(latestPass.appliedAt).toLocaleString()}</p>
-            <p><strong>Status:</strong> {latestPass.status}</p>
+            <p>
+              <strong>Reason:</strong> {latestPass.reason}
+            </p>
+            <p>
+              <strong>Applied At:</strong>{' '}
+              {new Date(latestPass.appliedAt).toLocaleString()}
+            </p>
+            <p>
+              <strong>Status:</strong> {latestPass.status}
+            </p>
 
             {/* QR Code Logic */}
             {latestPass.status === 'APPROVED' && (
@@ -66,7 +82,10 @@ const Home: React.FC = () => {
                 {!latestPass.qr ? (
                   <p className="text-muted">QR Code not generated yet.</p>
                 ) : !showQr ? (
-                  <button className="btn btn-primary" onClick={() => setShowQr(true)}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setShowQr(true)}
+                  >
                     Show QR Code
                   </button>
                 ) : (
@@ -79,7 +98,10 @@ const Home: React.FC = () => {
                       style={{ maxWidth: '250px' }}
                     />
                     <div className="mt-3">
-                      <button className="btn btn-outline-secondary" onClick={() => setShowQr(false)}>
+                      <button
+                        className="btn btn-outline-secondary"
+                        onClick={() => setShowQr(false)}
+                      >
                         Hide QR
                       </button>
                     </div>
@@ -89,13 +111,20 @@ const Home: React.FC = () => {
             )}
 
             {latestPass.status === 'PENDING' && (
-              <p className="text-warning mt-2">Your request is pending approval.</p>
+              <p className="text-warning mt-2">
+                Your request is pending approval.
+              </p>
             )}
             {latestPass.status === 'REJECTED' && (
-              <p className="text-danger mt-2">Your request was rejected.</p>
+              <p className="text-danger mt-2">
+                Your request was rejected.
+              </p>
             )}
-            {(latestPass.status === 'ESCALATED' || latestPass.status === 'UTILIZED') && (
-              <p className="text-muted mt-2">This gate pass is no longer active.</p>
+            {(latestPass.status === 'ESCALATED' ||
+              latestPass.status === 'UTILIZED') && (
+              <p className="text-muted mt-2">
+                This gate pass is no longer active.
+              </p>
             )}
           </div>
         </div>
@@ -111,7 +140,10 @@ const Home: React.FC = () => {
       {user.role === 'SECURITY' && (
         <div className="text-center">
           <h5 className="mb-3">Security Dashboard</h5>
-          <button className="btn btn-primary" onClick={() => nav('/security/scan')}>
+          <button
+            className="btn btn-primary"
+            onClick={() => nav('/security/scan')}
+          >
             Go to Scan QR
           </button>
         </div>
