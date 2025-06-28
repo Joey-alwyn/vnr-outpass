@@ -60,7 +60,7 @@ async function getStudentStatus(req, res) {
         });
         const enhanced = await Promise.all(passes.map(async (p) => {
             if (p.status === 'APPROVED' && p.qrToken) {
-                const url = `http:// /api/security/scan/${p.id}/${p.qrToken}`;
+                const url = `http://localhost:4000/api/security/scan/${p.id}/${p.qrToken}`;
                 const qr = await qrcode_1.default.toDataURL(url);
                 return { ...p, qr };
             }
