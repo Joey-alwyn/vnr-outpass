@@ -7,12 +7,11 @@ import {
   JWT_EXPIRES_IN,
   COOKIE_NAME,
 } from './config';
-
-// console.log('🔐 Loaded JWT_SECRET:', JWT_SECRET);
+import { Sign } from 'crypto';
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-/** Verify the Google ID token and return its payload */
+/** ✅ Verify Google ID Token */
 export async function verifyGoogleIdToken(
   idToken: string
 ): Promise<TokenPayload> {
@@ -23,56 +22,52 @@ export async function verifyGoogleIdToken(
   return ticket.getPayload()!;
 }
 
-/** Issue our own JWT and set it as an HttpOnly cookie */
+/** ✅ Issue signed JWT in a secure HTTP-only cookie */
 export function issueSessionCookie(res: Response, payload: object): void {
-  // Cast options to SignOptions so TS knows expiresIn is valid
-  const options = { expiresIn: JWT_EXPIRES_IN } as SignOptions;
-  const token = sign(
-    payload,
-    JWT_SECRET as Secret,
-    options
-  );
+  const token = sign(payload, JWT_SECRET as Secret, {
+    expiresIn: JWT_EXPIRES_IN,
+  }as SignOptions) ;
 
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production', // ✅ only in prod
+    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'strict',
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
   });
 }
 
-/** Middleware to protect routes by verifying our JWT cookie */
+/** ✅ Middleware to check cookie JWT and populate req.user */
 export function isAuthenticated(
   req: Request,
   res: Response,
   next: NextFunction
 ): void {
-  const token = req.cookies[COOKIE_NAME];
-// console.log('🍪 Received token:', token);
+  const token = req.cookies?.[COOKIE_NAME];
 
   if (!token) {
-    res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: 'Unauthorized: no session cookie' });
     return;
   }
+
   try {
-    const data = verify(token, JWT_SECRET as Secret);
-    (req as any).user = data;
+    const decoded = verify(token, JWT_SECRET as Secret);
+    (req as any).user = decoded;
     next();
   } catch (err) {
-  console.error('JWT verification failed:', err);
-  res.status(401).json({ error: 'Invalid session' });
+    console.error('JWT verification failed:', err);
+    res.status(401).json({ error: 'Invalid session' });
+  }
 }
 
-}
-
-
+/** ✅ Role-based access control */
 export function requireRole(role: 'STUDENT' | 'MENTOR' | 'HOD' | 'SECURITY') {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = (req as any).user;
+
     if (!user || user.role !== role) {
-      res.status(403).json({ error: 'Forbidden: insufficient role' });
-      return;
+      return res.status(403).json({ error: 'Forbidden: insufficient role' });
     }
+
     next();
   };
 }
