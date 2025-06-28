@@ -57,11 +57,19 @@ useEffect(() => {
         <div className="alert alert-danger mt-3 text-center">{error}</div>
       )}
       {result && (
-        <div className="alert alert-success mt-3">
-          <h5>Scan Success</h5>
-          <pre>{JSON.stringify(result, null, 2)}</pre>
-        </div>
-      )}
+  <div className="card mt-4 shadow-sm border-success">
+    <div className="card-header bg-success text-white">
+      Access Granted
+    </div>
+    <div className="card-body">
+      <h5 className="card-title">Student: {result.student.name}</h5>
+      <p className="card-text"><strong>Email:</strong> {result.student.email}</p>
+      <p className="card-text"><strong>Reason:</strong> {result.reason}</p>
+      <p className="card-text"><strong>Applied At:</strong> {new Date(result.appliedAt).toLocaleString()}</p>
+      <p className="card-text"><strong>Scanned At:</strong> {new Date(result.scannedAt).toLocaleString()}</p>
+    </div>
+  </div>
+)}
     </div>
   )
 }
