@@ -9,6 +9,8 @@ import { authRoutes } from './routes/auth.routes';
 import { studentRoutes } from './routes/student.routes';
 import { mentorRoutes } from './routes/mentor.routes';
 import securityRoutes from './routes/security.routes'; // ✅ correct import
+import cronJob from './utils/cron';
+cronJob.start();
 
 dotenv.config();
 const app = express();
