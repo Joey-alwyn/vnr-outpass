@@ -1,15 +1,15 @@
 import { CronJob } from "cron";
 import https from "https";
-import { API_URL } from "../config";
+import { VITE_API_URL } from "../config";
 
 const job = new CronJob("*/14 * * * *", function () {
-  if (!API_URL) {
-    console.error("API_URL is not defined.");
+  if (!VITE_API_URL) {
+    console.error("VITE_API_URL is not defined.");
     return;
   }
 
   https
-    .get(API_URL, (res) => {
+    .get(VITE_API_URL, (res) => {
       if (res.statusCode === 200) console.log("GET request sent successfully");
       else console.log("GET request failed", res.statusCode);
     })
