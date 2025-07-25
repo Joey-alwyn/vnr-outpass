@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
+import { toast } from 'sonner';
 
 type Pass = {
   id: string;
@@ -17,10 +18,21 @@ const StudentStatus: React.FC = () => {
   useEffect(() => {
     api
       .get<{ passes: Pass[] }>('/student/status')
-      .then((res) => setPasses(res.data.passes))
-      .catch((e) =>
-        setError(e.response?.data?.error || 'Failed to load passes')
-      );
+      .then((res) => {
+        setPasses(res.data.passes);
+        if (res.data.passes.length === 0) {
+          toast.info('No Gate Passes Found', {
+            description: 'You haven\'t applied for any gate passes yet.'
+          });
+        }
+      })
+      .catch((e) => {
+        const errorMessage = e.response?.data?.error || 'Failed to load passes';
+        setError(errorMessage);
+        toast.error('Failed to Load Passes', {
+          description: errorMessage
+        });
+      });
   }, []);
 
   if (error)
@@ -58,7 +70,12 @@ const StudentStatus: React.FC = () => {
                       <p className="text-muted">QR Code not generated yet.</p>
                     ) : !showQrFor || showQrFor !== p.id ? (
                       <button
-                        onClick={() => setShowQrFor(p.id)}
+                        onClick={() => {
+                          setShowQrFor(p.id);
+                          toast.success('QR Code Displayed', {
+                            description: 'Present this QR code to security when exiting the campus.'
+                          });
+                        }}
                         className="btn btn-primary"
                       >
                         Show QR Code
@@ -74,7 +91,12 @@ const StudentStatus: React.FC = () => {
                         />
                         <div className="mt-3">
                           <button
-                            onClick={() => setShowQrFor(null)}
+                            onClick={() => {
+                              setShowQrFor(null);
+                              toast.info('QR Code Hidden', {
+                                description: 'QR code has been hidden for security.'
+                              });
+                            }}
                             className="btn btn-outline-secondary"
                           >
                             Hide QR

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { api } from '../api'
+import { toast } from 'sonner'
 
 const SecurityScan: React.FC = () => {
   const [result, setResult] = useState<any>(null)
@@ -22,7 +23,11 @@ useEffect(() => {
     )
     .catch(err => {
       console.error("Camera start error:", err)
-      setError("Unable to access camera")
+      const errorMessage = "Unable to access camera. Please ensure camera permissions are granted.";
+      setError(errorMessage);
+      toast.error('Camera Access Failed', {
+        description: errorMessage
+      });
     })
 
   return () => {
@@ -35,13 +40,26 @@ useEffect(() => {
   const handleScan = async (url: string) => {
     setLoading(true)
     setError(null)
+    toast.loading('Validating QR code...');
+    
     try {
       const parts = new URL(url)
       const [, , passId, token] = parts.pathname.split('/').slice(-4)
       const res = await api.get(`/security/scan/${passId}/${token}`)
+      
+      toast.dismiss();
+      toast.success('Access Granted!', {
+        description: `Gate pass validated for ${res.data.student.name}`
+      });
+      
       setResult(res.data)
     } catch (e: any) {
-      setError(e.response?.data?.error || 'Invalid QR')
+      toast.dismiss();
+      const errorMessage = e.response?.data?.error || 'Invalid QR code';
+      setError(errorMessage);
+      toast.error('Access Denied', {
+        description: errorMessage
+      });
     } finally {
       setLoading(false)
     }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '../api'
+import { toast } from 'sonner'
 
 type Req = {
   id: string
@@ -20,8 +21,17 @@ const MentorRequests: React.FC = () => {
     try {
       const res = await api.get('/mentor/requests')
       setReqs(res.data.requests)
+      if (res.data.requests.length === 0) {
+        toast.info('No pending requests', {
+          description: 'All gate pass requests have been processed.'
+        });
+      }
     } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to load requests')
+      const errorMessage = e.response?.data?.error || 'Failed to load requests';
+      setError(errorMessage);
+      toast.error('Failed to Load Requests', {
+        description: errorMessage
+      });
     }
   }
 
@@ -32,17 +42,30 @@ const MentorRequests: React.FC = () => {
   const respond = async (id: string, action: 'APPROVE' | 'REJECT') => {
     try {
       setError(null)
+      toast.loading(`${action === 'APPROVE' ? 'Approving' : 'Rejecting'} gate pass request...`);
+      
       const res = await api.post('/mentor/respond', { gatePassId: id, action })
 
-      if (res.data.qr) {
-        alert(`Approved! QR Code:\n${res.data.qr}`)
+      toast.dismiss();
+      
+      if (action === 'APPROVE') {
+        toast.success('Gate Pass Approved!', {
+          description: res.data.qr ? 'QR code has been generated and sent to the student.' : 'Request approved successfully.'
+        });
       } else {
-        alert(`Request ${action.toLowerCase()}ed`)
+        toast.success('Gate Pass Rejected', {
+          description: 'The student has been notified of the rejection.'
+        });
       }
 
       setReqs(prev => prev.filter(r => r.id !== id))
     } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to respond')
+      toast.dismiss();
+      const errorMessage = e.response?.data?.error || 'Failed to respond';
+      setError(errorMessage);
+      toast.error(`Failed to ${action === 'APPROVE' ? 'Approve' : 'Reject'}`, {
+        description: errorMessage
+      });
     }
   }
 

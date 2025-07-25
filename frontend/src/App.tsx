@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import { Layout } from './components/Layout';
 import { RequireRole } from './components/RequireRole';
+import { Toaster } from './components/ui/sonner';
 import Home from './pages/Home';
 import GatePassForm from './pages/GatePassForm';
 import StudentStatus from './pages/StudentStatus';
@@ -60,6 +61,7 @@ const App: React.FC = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
+      <Toaster />
     </BrowserRouter>
   </AuthProvider>
 );

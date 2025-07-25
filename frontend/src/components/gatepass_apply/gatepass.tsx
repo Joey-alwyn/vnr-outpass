@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 import { AlertTriangle, FileText, Send } from 'lucide-react'
+import { toast } from 'sonner'
 import './gatepass.css'
 
 interface GatePassData {
@@ -22,17 +23,31 @@ const GatePassForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!data.reason.trim()) {
-      setError('Please provide a reason for your gate pass request.')
+      const errorMessage = 'Please provide a reason for your gate pass request.';
+      setError(errorMessage);
+      toast.error('Validation Error', {
+        description: errorMessage
+      });
       return
     }
     
     setLoading(true)
     setError(null)
     try {
+      toast.loading('Submitting your gate pass application...');
       await api.post('/student/apply', data)
+      toast.dismiss();
+      toast.success('Application Submitted!', {
+        description: 'Your gate pass request has been submitted successfully and is now pending approval.'
+      });
       nav('/student/status')
     } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to submit application. Please try again.')
+      toast.dismiss();
+      const errorMessage = e.response?.data?.error || 'Failed to submit application. Please try again.';
+      setError(errorMessage);
+      toast.error('Application Failed', {
+        description: errorMessage
+      });
     } finally {
       setLoading(false)
     }

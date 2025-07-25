@@ -2,6 +2,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useState } from 'react';
 import { api } from '../api';
 import { AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function LoginButton() {
   const [error, setError] = useState<string | null>(null);
@@ -19,17 +20,26 @@ export function LoginButton() {
 
             try {
               await api.post('/auth/google', { idToken });
+              toast.success('Login successful! Welcome to VNR OutPass.');
               window.location.reload();
             } catch (err) {
               console.error('Backend login failed:', err);
-              setError('Login failed. Please check your internet connection and try again.');
+              const errorMessage = 'Login failed. Please check your internet connection and try again.';
+              setError(errorMessage);
+              toast.error('Login Failed', {
+                description: errorMessage
+              });
             } finally {
               setLoading(false);
             }
           }}
           onError={() => {
             console.error('Google Login failed');
-            setError('Google authentication failed. Please try again.');
+            const errorMessage = 'Google authentication failed. Please try again.';
+            setError(errorMessage);
+            toast.error('Authentication Failed', {
+              description: errorMessage
+            });
           }}
           theme="outline"
           size="large"

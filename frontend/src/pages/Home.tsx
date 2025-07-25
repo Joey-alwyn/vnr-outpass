@@ -4,6 +4,7 @@ import { LoginButton } from '../components/LoginButton'
 import { api } from '../api'
 import { useNavigate } from 'react-router-dom'
 import { QrCode, Clock, CheckCircle, XCircle, AlertCircle, FileText, Users, Scan, Shield, ArrowRight } from 'lucide-react'
+import { toast } from 'sonner'
 
 const Home: React.FC = () => {
   const { user, loading } = useAuth()
@@ -19,8 +20,27 @@ const Home: React.FC = () => {
       try {
         const res = await api.get('/student/status')
         setLatestPass(res.data.passes[0] || null)
+        if (res.data.passes[0]) {
+          if (res.data.passes[0].status === 'APPROVED') {
+            toast.success('Gate Pass Approved!', {
+              description: 'Your latest gate pass has been approved. You can now show the QR code to security.'
+            });
+          } else if (res.data.passes[0].status === 'PENDING') {
+            toast.info('Gate Pass Pending', {
+              description: 'Your gate pass is waiting for mentor approval.'
+            });
+          } else if (res.data.passes[0].status === 'REJECTED') {
+            toast.error('Gate Pass Rejected', {
+              description: 'Your latest gate pass was rejected. You can apply for a new one.'
+            });
+          }
+        }
       } catch {
-        setError('Failed to fetch latest gate pass.')
+        const errorMessage = 'Failed to fetch latest gate pass.';
+        setError(errorMessage);
+        toast.error('Failed to Load Status', {
+          description: errorMessage
+        });
       }
     }
 
@@ -192,7 +212,12 @@ const Home: React.FC = () => {
                         <div className="text-center">
                           <button
                             className="btn btn-success px-4 py-2 d-inline-flex align-items-center"
-                            onClick={() => setShowQr(true)}
+                            onClick={() => {
+                              setShowQr(true);
+                              toast.success('QR Code Displayed', {
+                                description: 'Present this QR code to security when exiting the campus.'
+                              });
+                            }}
                           >
                             <QrCode size={18} className="me-2" />
                             Show QR Code
@@ -212,7 +237,12 @@ const Home: React.FC = () => {
                           <div>
                             <button
                               className="btn btn-outline-secondary me-2"
-                              onClick={() => setShowQr(false)}
+                              onClick={() => {
+                                setShowQr(false);
+                                toast.info('QR Code Hidden', {
+                                  description: 'QR code has been hidden for security.'
+                                });
+                              }}
                             >
                               Hide QR
                             </button>
