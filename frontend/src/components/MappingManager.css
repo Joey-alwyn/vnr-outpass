@@ -1,0 +1,369 @@
+.mapping-manager {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.mapping-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.mapping-header h2 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 1.8em;
+}
+
+.refresh-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.mapping-loading,
+.mapping-error {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1em;
+  color: var(--text-color);
+}
+
+.mapping-error {
+  color: var(--error-color);
+}
+
+/* Summary Cards */
+.mapping-summary {
+  margin-bottom: 30px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+}
+
+.card-value {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 5px;
+}
+
+.card-label {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+/* Content Sections */
+.mapping-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.mapping-section {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mapping-section h3 {
+  margin: 0 0 20px 0;
+  color: var(--text-color);
+  font-size: 1.3em;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Mappings Table */
+.mappings-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 20px;
+  padding: 15px;
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 20px;
+  padding: 15px;
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.table-row:hover {
+  background: var(--hover-color);
+  border-color: var(--primary-color);
+}
+
+.student-info,
+.mentor-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-info .name,
+.mentor-info .name {
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.student-info .email,
+.mentor-info .email {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.mentor-info select {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-color);
+  color: var(--text-color);
+  min-width: 200px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-btn,
+.remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  font-size: 1.1em;
+}
+
+.edit-btn:hover {
+  background: var(--primary-light);
+}
+
+.remove-btn:hover {
+  background: var(--error-light);
+}
+
+.updating {
+  font-size: 1.2em;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.no-mappings {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Unmapped Students */
+.unmapped-students {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.unmapped-student {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: var(--warning-light);
+  border: 1px solid var(--warning-color);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.unmapped-student:hover {
+  border-color: var(--warning-dark);
+}
+
+.assign-mentor select {
+  padding: 8px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-color);
+  color: var(--text-color);
+  min-width: 200px;
+}
+
+.assign-btn {
+  background: var(--success-color);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.assign-btn:hover:not(:disabled) {
+  background: var(--success-dark);
+  transform: translateY(-1px);
+}
+
+.assign-btn:disabled {
+  background: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* Mentors Grid */
+.mentors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.mentor-card {
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.mentor-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mentor-name {
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 5px;
+}
+
+.mentor-email {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  margin-bottom: 8px;
+}
+
+.mentor-students {
+  color: var(--primary-color);
+  font-size: 0.85em;
+  font-weight: 500;
+  padding: 4px 8px;
+  background: var(--primary-light);
+  border-radius: 12px;
+  display: inline-block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mapping-manager {
+    padding: 15px;
+  }
+
+  .mapping-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .unmapped-student {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .assign-mentor {
+    text-align: center;
+  }
+
+  .mentors-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Theme Support */
+@media (prefers-color-scheme: dark) {
+  .mapping-manager {
+    --background-color: #1a1a1a;
+    --card-background: #2a2a2a;
+    --text-color: #ffffff;
+    --text-secondary: #b0b0b0;
+    --border-color: #404040;
+    --hover-color: #333333;
+    --primary-color: #007acc;
+    --primary-dark: #005a99;
+    --primary-light: rgba(0, 122, 204, 0.1);
+    --success-color: #28a745;
+    --success-dark: #1e7e34;
+    --warning-color: #ffc107;
+    --warning-dark: #e0a800;
+    --warning-light: rgba(255, 193, 7, 0.1);
+    --error-color: #dc3545;
+    --error-light: rgba(220, 53, 69, 0.1);
+  }
+}

@@ -1,132 +1,49 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import 'express'; // This ensures global types are merged
 import express from 'express';
-import cors from 'cors';
+import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import { PORT, COOKIE_NAME } from './config';
-import { verifyGoogleIdToken, issueSessionCookie, isAuthenticated, requireRole } from './auth';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import cors from 'cors';
+import { PORT } from './config';
+import { authRoutes } from './routes/auth.routes';
+import { studentRoutes } from './routes/student.routes';
+import { mentorRoutes } from './routes/mentor.routes';
+import securityRoutes from './routes/security.routes'; // ✅ correct import
+import userRoutes from './routes/user.routes'; // ✅ new user routes
+import adminRoutes from './routes/admin.routes'; // ✅ new admin routes
+// import cronJob from './utils/cron';
+//cronJob.start();
+dotenv.config();
 const app = express();
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://vnr-outpass-frontend.vercel.app',
+];
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: (incomingOrigin, cb) => {
+        if (!incomingOrigin || allowedOrigins.includes(incomingOrigin)) {
+            return cb(null, true);
+        }
+        cb(new Error('Not allowed by CORS'));
+    },
     credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
-// Health check
 app.get('/health', (_req, res) => {
     res.json({ status: 'OK' });
 });
-/**
- * POST /auth/google
- */
-app.post('/auth/google', async (req, res) => {
-    const { idToken } = req.body;
-    if (!idToken) {
-        res.status(400).json({ error: 'idToken missing' });
-        return;
-    }
-    try {
-        const payload = await verifyGoogleIdToken(idToken);
-        const email = payload.email?.toLowerCase();
-        const name = payload.name || 'Unknown';
-        if (!email) {
-            res.status(400).json({ error: 'Invalid Google token (no email)' });
-            return;
-        }
-        let user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-            const mentorEmails = [
-                'aveenonights@gmail.com',
-                'vnr.cse.a.2022@gmail.com',
-                'battinans@gmail.com',
-            ];
-            const studentRegex = /^[0-9a-zA-Z]{10}@vnrvjiet\.in$/i;
-            let inferredRole = null;
-            if (mentorEmails.includes(email)) {
-                inferredRole = 'MENTOR';
-            }
-            else if (studentRegex.test(email)) {
-                inferredRole = 'STUDENT';
-            }
-            else {
-                res.status(403).json({ error: 'Access denied. Not recognized.' });
-                return;
-            }
-            user = await prisma.user.create({
-                data: {
-                    email,
-                    name,
-                    role: inferredRole,
-                },
-            });
-            console.log(`Created new ${inferredRole} user: ${email}`);
-        }
-        issueSessionCookie(res, {
-            sub: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-        });
-        res.json({ message: 'Logged in', user });
-    }
-    catch (err) {
-        console.error('Error verifying token:', err);
-        res.status(401).json({ error: 'Invalid Google token' });
-    }
-});
-/**
- * GET /check-auth
- */
-app.get('/check-auth', isAuthenticated, (req, res) => {
-    res.json({ user: req.user });
-});
-/**
- * POST /logout
- */
-app.post('/logout', (_req, res) => {
-    res.clearCookie(COOKIE_NAME, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-    });
-    res.json({ message: 'Logged out' });
+// ✅ Route groups with '/api' prefix
+app.use('/api/auth', authRoutes);
+app.use('/api/student', studentRoutes);
+app.use('/api/mentor', mentorRoutes);
+app.use('/api/security', securityRoutes); // ✅ changed from '/security'
+app.use('/api/user', userRoutes); // ✅ new user routes
+app.use('/api/admin', adminRoutes); // ✅ new admin routes
+app.use((err, req, res, next) => {
+    console.error('💥 Uncaught error:', err);
+    res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 app.listen(PORT, () => {
     console.log(`🚀 Backend running on http://localhost:${PORT}`);
-});
-//posting
-app.post('/student/apply', isAuthenticated, requireRole('STUDENT'), async (req, res) => {
-    const user = req.user;
-    const { reason } = req.body;
-    if (!reason || reason.trim().length < 3) {
-        res.status(400).json({ error: 'Reason is required and must be meaningful.' });
-        return;
-    }
-    try {
-        // 1. Find the student's mentor
-        const mentorMap = await prisma.studentMentor.findFirst({
-            where: { student: { email: user.email } },
-            include: { mentor: true },
-        });
-        if (!mentorMap || !mentorMap.mentorId) {
-            res.status(400).json({ error: 'No mentor mapping found for student.' });
-            return;
-        }
-        // 2. Create the gate pass
-        const gatePass = await prisma.gatePass.create({
-            data: {
-                reason,
-                studentId: user.sub,
-                mentorId: mentorMap.mentorId,
-                status: 'PENDING',
-            },
-        });
-        res.status(201).json({ message: 'Gate pass submitted', gatePass });
-    }
-    catch (err) {
-        console.error('Error creating gate pass:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
 });

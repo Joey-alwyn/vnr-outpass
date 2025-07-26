@@ -14,6 +14,8 @@ async function main() {
     { email: 'aveenonights@gmail.com', name: 'Joe Alwyn',           role: Role.MENTOR  },
     { email: 'vnr.cse.a.2022@gmail.com', name: 'Mentor 2022',      role: Role.MENTOR  },
     { email: 'killuaxkillua00@gmail.com', name: 'Security Guard',  role: Role.SECURITY },
+    { email: 'hod@vnrvjiet.in', name: 'Head of Department',        role: Role.HOD },
+    { email: 'admin@vnrvjiet.in', name: 'System Administrator',     role: Role.HOD },
   ];
 
   // 2. Upsert each user by email

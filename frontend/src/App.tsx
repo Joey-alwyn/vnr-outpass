@@ -10,6 +10,8 @@ import StudentStatus from './pages/StudentStatus';
 import MentorRequests from './pages/MentorRequests';
 import SecurityScan from './pages/SecurityScan';
 import HodPanel from './pages/HodPanel';
+import ContactAdmin from './pages/ContactAdmin';
+import AdminPanel from './pages/AdminPanel';
 import NotFound from './pages/NotFound';
 
 const App: React.FC = () => (
@@ -58,6 +60,15 @@ const App: React.FC = () => (
               </RequireRole>
             }
           />
+          <Route
+            path="/admin"
+            element={
+              <RequireRole roles={['HOD']}>
+                <AdminPanel />
+              </RequireRole>
+            }
+          />
+          <Route path="/contact-admin" element={<ContactAdmin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>

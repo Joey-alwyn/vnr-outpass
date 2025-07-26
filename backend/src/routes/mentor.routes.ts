@@ -1,8 +1,8 @@
 import { Router } from 'express'
 import { getMentorRequests, respondToRequest } from '../controllers/mentor.controller'
-import { isAuthenticated, requireRole } from '../auth'
+import { requireRole } from '../middlewares/role.middleware'
 
 export const mentorRoutes = Router()
 
-mentorRoutes.get('/requests', isAuthenticated, requireRole('MENTOR'), getMentorRequests)
-mentorRoutes.post('/respond', isAuthenticated, requireRole('MENTOR'), respondToRequest)
+mentorRoutes.get('/requests', requireRole('MENTOR'), getMentorRequests)
+mentorRoutes.post('/respond', requireRole('MENTOR'), respondToRequest)

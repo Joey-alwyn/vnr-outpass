@@ -13,6 +13,14 @@ const Home: React.FC = () => {
   const [showQr, setShowQr] = useState(false)
   const nav = useNavigate()
 
+  // Redirect users without roles to contact admin page
+  useEffect(() => {
+    if (user && !user.role) {
+      nav('/contact-admin')
+      return
+    }
+  }, [user, nav])
+
   useEffect(() => {
     if (!user || user.role !== 'STUDENT') return
 
@@ -148,7 +156,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="container-fluid px-3 py-4">
+    <div className="container-fluid px-5 py-4">
       <div className="row">
         <div className="col-12">
           <div className="mb-4 fade-in">

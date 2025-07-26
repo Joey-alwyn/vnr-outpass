@@ -1,15 +1,17 @@
 import { CronJob } from "cron";
 import https from "https";
-import { VITE_API_URL } from "../config";
+
+// Keep server alive by pinging itself every 14 minutes
+const API_URL = process.env.API_URL || `http://localhost:${process.env.PORT || 4000}`;
 
 const job = new CronJob("*/14 * * * *", function () {
-  if (!VITE_API_URL) {
-    console.error("VITE_API_URL is not defined.");
+  if (!API_URL) {
+    console.error("API_URL is not defined.");
     return;
   }
 
   https
-    .get(VITE_API_URL, (res) => {
+    .get(API_URL, (res) => {
       if (res.statusCode === 200) console.log("GET request sent successfully");
       else console.log("GET request failed", res.statusCode);
     })

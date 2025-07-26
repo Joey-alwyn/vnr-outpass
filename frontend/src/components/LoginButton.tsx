@@ -1,10 +1,11 @@
 import { GoogleLogin } from '@react-oauth/google';
 import { useState } from 'react';
-import { api } from '../api';
+import { useAuth } from '../auth/AuthContext';
 import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function LoginButton() {
+  const { loginWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -19,16 +20,12 @@ export function LoginButton() {
             setLoading(true);
 
             try {
-              await api.post('/auth/google', { idToken });
-              toast.success('Login successful! Welcome to VNR OutPass.');
-              window.location.reload();
+              await loginWithGoogle(idToken);
+              // No need to reload - AuthContext will handle state updates
             } catch (err) {
-              console.error('Backend login failed:', err);
+              console.error('Login failed:', err);
               const errorMessage = 'Login failed. Please check your internet connection and try again.';
               setError(errorMessage);
-              toast.error('Login Failed', {
-                description: errorMessage
-              });
             } finally {
               setLoading(false);
             }
