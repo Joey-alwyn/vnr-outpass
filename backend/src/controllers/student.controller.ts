@@ -7,6 +7,16 @@ export async function applyGatePass(req: Request, res: Response): Promise<any> {
   const { reason } = req.body;
 
   console.log('reason', reason);
+
+  // Check for authenticated user
+  if (!user) {
+    console.log('⚠️ No authenticated user found - authentication required');
+    return res.status(401).json({ 
+      error: 'Authentication required',
+      message: 'Please login to apply for gate pass'
+    });
+  }
+
   if (!reason || reason.trim().length < 3) {
     return res.status(400).json({ error: 'Reason must be meaningful.' });
   }
@@ -53,8 +63,19 @@ export async function applyGatePass(req: Request, res: Response): Promise<any> {
 
 export async function getStudentStatus(req: Request, res: Response) {
   try {
+    const user = (req as any).user;
+
+    // If no user is authenticated, return empty array
+    if (!user) {
+      console.log('⚠️ No authenticated user found - returning empty passes');
+      return res.json({ 
+        passes: [],
+        message: 'No authenticated user - please login to see your passes'
+      });
+    }
+
     const passes = await prisma.gatePass.findMany({
-      where: { student: { email: (req as any).user.email.toLowerCase() } },
+      where: { student: { email: user.email.toLowerCase() } },
       orderBy: { appliedAt: 'desc' },
     });
 

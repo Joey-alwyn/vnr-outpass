@@ -7,6 +7,15 @@ export async function getMentorRequests(req: Request, res: Response) {
   const mentor = (req as any).user
 
   try {
+    // If no user is authenticated, return empty requests (development fallback)
+    if (!mentor) {
+      console.log('⚠️ No authenticated user found - returning empty requests');
+      return res.json({ 
+        requests: [],
+        message: 'No authenticated user - please login to see requests'
+      });
+    }
+
     const requests = await prisma.gatePass.findMany({
       where: { mentorId: mentor.id, status: GatePassStatus.PENDING },
       include: {
@@ -28,6 +37,16 @@ export async function respondToRequest(req: Request, res: Response): Promise<any
   const mentor = (req as any).user
   const { gatePassId, action } = req.body
   console.log('Received respondToRequest request:', req.body);
+
+  // Check for authenticated user
+  if (!mentor) {
+    console.log('⚠️ No authenticated user found - authentication required for this operation');
+    return res.status(401).json({ 
+      error: 'Authentication required',
+      message: 'Please login to respond to requests'
+    });
+  }
+
   if (!gatePassId || !['APPROVE', 'REJECT'].includes(action)) {
     return res.status(400).json({ error: 'Invalid request body' })
   }

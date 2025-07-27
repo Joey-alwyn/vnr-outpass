@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { Menu, X, User, LogOut, Home, FileText, Users, Scan, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, Home, FileText, Users, Scan, Shield, Settings } from 'lucide-react';
 import './Layout.css';
 
 export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -39,8 +39,14 @@ export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
 
     if (user?.role === 'HOD') {
-      items.push({ path: '/hod', label: 'HOD Panel', icon: Shield, roles: ['HOD'] });
+      items.push(
+        { path: '/hod', label: 'HOD Panel', icon: Shield, roles: ['HOD'] },
+        { path: '/admin', label: 'Admin Panel', icon: Settings, roles: ['HOD'] }
+      );
     }
+
+    // Note: Admin Panel is only accessible to HOD users
+    // No development mode override - strict role-based access control
 
     return items.filter(item => item.roles.includes(user?.role || ''));
   };

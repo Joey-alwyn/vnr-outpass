@@ -86,6 +86,134 @@ router.put('/users/:userId/role', requireRole('HOD'), async (req, res) => {
 });
 
 /**
+ * POST /api/admin/users
+ * Create a new user manually (HOD only)
+ */
+router.post('/users', requireRole('HOD'), async (req, res) => {
+  try {
+    const { email, name, role } = req.body;
+
+    console.log(`🔍 Creating new user: ${email} with role ${role}...`);
+
+    // Validate input
+    if (!email || !name || !role) {
+      return res.status(400).json({ error: 'Email, name, and role are required' });
+    }
+
+    // Validate email format
+    if (!email.includes('@vnrvjiet.in')) {
+      return res.status(400).json({ error: 'Email must be from @vnrvjiet.in domain' });
+    }
+
+    // Validate role
+    const validRoles = ['STUDENT', 'MENTOR', 'HOD', 'SECURITY'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Invalid role specified' });
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
+
+    if (existingUser) {
+      return res.status(409).json({ error: 'User with this email already exists' });
+    }
+
+    // Create user
+    const newUser = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        name: name.trim(),
+        role: role as Role,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    console.log(`✅ Created new user:`, newUser);
+
+    res.status(201).json({
+      message: 'User created successfully',
+      user: newUser,
+    });
+  } catch (error) {
+    console.error('❌ Error creating user:', error);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+/**
+ * GET /api/admin/pending-actions
+ * Get pending actions that require admin attention (HOD only)
+ */
+router.get('/pending-actions', requireRole('HOD'), async (req, res) => {
+  try {
+    console.log('🔍 Checking for pending actions...');
+
+    const actions: any[] = [];
+
+    // Find users who are no longer mentors but still have student mappings
+    const orphanedMappings = await prisma.studentMentor.findMany({
+      include: {
+        mentor: true,
+        student: true,
+      },
+      where: {
+        mentor: {
+          role: {
+            not: 'MENTOR'
+          }
+        }
+      }
+    });
+
+    if (orphanedMappings.length > 0) {
+      // Group by mentor
+      const mentorGroups = orphanedMappings.reduce((acc, mapping) => {
+        const mentorId = mapping.mentor.id;
+        if (!acc[mentorId]) {
+          acc[mentorId] = {
+            mentor: mapping.mentor,
+            students: []
+          };
+        }
+        acc[mentorId].students.push(mapping.student);
+        return acc;
+      }, {} as any);
+
+      Object.values(mentorGroups).forEach((group: any) => {
+        actions.push({
+          type: 'unmap_students',
+          description: `${group.mentor.name} is no longer a MENTOR but still has ${group.students.length} students assigned. Students need to be reassigned to active mentors.`,
+          userId: group.mentor.id,
+          userName: group.mentor.name,
+          oldRole: 'MENTOR',
+          newRole: group.mentor.role,
+          affectedCount: group.students.length,
+          students: group.students.map((s: any) => ({ id: s.id, name: s.name, email: s.email }))
+        });
+      });
+    }
+
+    console.log(`✅ Found ${actions.length} pending actions`);
+
+    res.json({
+      actions,
+      count: actions.length,
+    });
+  } catch (error) {
+    console.error('❌ Error fetching pending actions:', error);
+    res.status(500).json({ error: 'Failed to fetch pending actions' });
+  }
+});
+
+/**
  * GET /api/admin/stats
  * Get system statistics (HOD only)
  */

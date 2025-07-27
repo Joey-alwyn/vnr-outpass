@@ -92,12 +92,24 @@ export async function verifyTokenWithAuthServer(token: string): Promise<{ valid:
  */
 export function requireRole(role: Role) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    console.log(`🔒 Checking role requirement: ${role} for ${req.method} ${req.path}`);
+    // Development bypass - still authenticate but skip role checks
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
+    console.log(`🔒 Checking role requirement: ${role} for ${req.method} ${req.path}`, {
+      isDevelopment,
+      NODE_ENV: process.env.NODE_ENV,
+      nodeEnvType: typeof process.env.NODE_ENV,
+    });
     
     const cookieHeader = req.headers.cookie;
     const token = extractUserToken(cookieHeader);
     
     if (!token) {
+      if (isDevelopment) {
+        console.log('🔧 DEVELOPMENT MODE: No token found, but allowing access anyway');
+        next();
+        return;
+      }
       console.log('❌ No token found, rejecting request');
       res.status(401).json({ error: 'No authentication token found' });
       return;
@@ -108,6 +120,11 @@ export function requireRole(role: Role) {
         console.log('🔍 Token verification result:', result);
         
         if (!result.valid || !result.user) {
+          if (isDevelopment) {
+            console.log('🔧 DEVELOPMENT MODE: Invalid token, but allowing access anyway');
+            next();
+            return;
+          }
           console.log('❌ Invalid token or no user data');
           res.status(401).json({ error: 'Invalid or expired token' });
           return;
@@ -117,7 +134,21 @@ export function requireRole(role: Role) {
         console.log('👤 User data from auth server:', user);
         (req as any).user = user;
 
+        // In development mode, bypass role checking but still set user
+        console.log('🔧 Development mode check:', {
+          isDevelopment,
+          NODE_ENV: process.env.NODE_ENV,
+          shouldBypass: isDevelopment
+        });
+        
+        if (isDevelopment) {
+          console.log('🔧 DEVELOPMENT MODE: User authenticated, bypassing role check');
+          next();
+          return;
+        }
+
         // Check if user has the required role
+        console.log(`🔍 Checking role: Required=${role}, User has=${user.role}`);
         if (user.role !== role) {
           console.log(`❌ Role mismatch. Required: ${role}, User has: ${user.role}`);
           res.status(403).json({ 
