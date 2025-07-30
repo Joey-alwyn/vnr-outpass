@@ -1,0 +1,195 @@
+/* Bootstrap CSS Import */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+/* Custom Bootstrap Variables Override */
+:root {
+  --bs-primary: #3b82f6;
+  --bs-secondary: #6b7280;
+  --bs-success: #10b981;
+  --bs-danger: #ef4444;
+  --bs-warning: #f59e0b;
+  --bs-info: #06b6d4;
+  --bs-light: #f8fafc;
+  --bs-dark: #1e293b;
+  
+  /* Custom Admin Theme Colors */
+  --admin-primary: #3b82f6;
+  --admin-secondary: #6366f1;
+  --admin-accent: #8b5cf6;
+  --admin-bg: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e8eaf6 100%);
+  --admin-card-bg: rgba(255, 255, 255, 0.95);
+  --admin-hover: rgba(59, 130, 246, 0.05);
+  
+  /* Shadow system */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Custom Bootstrap Component Overrides */
+.btn {
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.card {
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.table {
+  background-color: transparent;
+}
+
+.table-hover tbody tr:hover {
+  background-color: var(--admin-hover) !important;
+}
+
+.nav-pills .nav-link {
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.nav-pills .nav-link.active {
+  background: linear-gradient(90deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+  transform: scale(1.02);
+}
+
+.badge {
+  font-weight: 500;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.15);
+}
+
+/* Custom utility classes */
+.shadow-custom {
+  box-shadow: var(--shadow-lg);
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.bg-gradient-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.bg-admin {
+  background: var(--admin-bg);
+}
+
+.bg-admin-card {
+  background: var(--admin-card-bg);
+  backdrop-filter: blur(10px);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #1e293b 0%, var(--admin-primary) 50%, var(--admin-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Loading spinner styles */
+.loading-overlay {
+  background: var(--admin-bg);
+  backdrop-filter: blur(10px);
+}
+
+.spinner-border-custom {
+  width: 4rem;
+  height: 4rem;
+  border-width: 0.4em;
+}
+
+/* Responsive enhancements */
+@media (max-width: 768px) {
+  .btn {
+    transform: none !important;
+  }
+  
+  .btn:hover {
+    transform: none !important;
+  }
+  
+  .card:hover {
+    transform: none !important;
+  }
+}
+
+/* Custom scrollbar */
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--admin-primary), var(--admin-secondary));
+  border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #2563eb, #4f46e5);
+}
+
+/* Animation utilities */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}

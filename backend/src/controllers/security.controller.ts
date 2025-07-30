@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { prisma } from '../prisma/client';
+import { smsService } from '../utils/sms.util';
 
 export const scanQRCode: RequestHandler = async (req, res) => {
   const { passId, token } = req.params;
@@ -33,6 +34,30 @@ export const scanQRCode: RequestHandler = async (req, res) => {
         scannedAt: new Date(),
       },
     });
+
+    // Send SMS notification to parent when QR is scanned
+    try {
+      console.log('🔍 Checking for parent mobile number...');
+      console.log('Student data:', pass.student);
+      
+      const parentMobile = (pass.student as any).parentMobile || '';
+      console.log('Parent mobile extracted:', parentMobile);
+      
+      if (parentMobile) {
+        console.log('📱 Attempting to send QR scan SMS to parent...');
+        await smsService.sendQRScannedToParent(
+          pass.student.name,
+          pass.reason,
+          parentMobile,
+          updated.scannedAt || new Date()
+        );
+      } else {
+        console.log('⚠️ No parent mobile number found for student:', pass.student.name);
+      }
+    } catch (smsError) {
+      console.error('SMS notification error:', smsError);
+      // Don't fail the request if SMS fails
+    }
 
     res.status(200).json({
       id: pass.id,

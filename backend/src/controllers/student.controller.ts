@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../prisma/client';
 import QRCode from 'qrcode';
+import { smsService } from '../utils/sms.util';
 
 export async function applyGatePass(req: Request, res: Response): Promise<any> {
   const user = (req as any).user;
@@ -53,6 +54,28 @@ export async function applyGatePass(req: Request, res: Response): Promise<any> {
         },
       },
     });
+
+    // Send SMS notifications to mentor and parent
+    try {
+      const student = await prisma.user.findUnique({
+        where: { email: user.email.toLowerCase() }
+      });
+
+      const mentor = await prisma.user.findUnique({
+        where: { email: mentorMap.mentor.email.toLowerCase() }
+      });
+
+      if (student?.name) {
+        // Send notification ONLY to mentor (not parent)
+        const mentorMobile = (mentor as any)?.mobile || '';
+        if (mentorMobile && mentor?.name) {
+          await smsService.sendMentorNotification(mentor.name, student.name, reason, mentorMobile);
+        }
+      }
+    } catch (smsError) {
+      console.error('SMS notification error:', smsError);
+      // Don't fail the request if SMS fails
+    }
 
     res.status(201).json({ message: 'Submitted', gatePass });
   } catch (err) {

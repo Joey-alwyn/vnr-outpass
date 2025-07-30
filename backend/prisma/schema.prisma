@@ -27,6 +27,8 @@ model User {
   email           String   @unique
   name            String
   role            Role
+  mobile          String?  // User's mobile number
+  parentMobile    String?  // Parent's mobile number (for students)
   createdAt       DateTime @default(now())
 
   gatePasses      GatePass[]       @relation("StudentGatePasses")
