@@ -1392,7 +1392,7 @@ export const downloadApprovedScannedReport = async (req: Request, res: Response)
       mentorId 
     } = req.body;
 
-    console.log('📊 Generating approved & scanned outpass report:', { startDate, endDate, mentorId });
+    console.log('📊 Generating scanned outpasses report:', { startDate, endDate, mentorId });
 
     // Build where clause - only approved and scanned outpasses
     const whereClause: any = {
@@ -1449,44 +1449,30 @@ export const downloadApprovedScannedReport = async (req: Request, res: Response)
       'Student Email': (pass as any).student.email,
       'Student Phone Number': (pass as any).student.mobile || 'Not Available',
       'Parent Phone Number': (pass as any).student.parentMobile || 'Not Available',
-      'Who Approved': (pass as any).mentor.name,
+      'Approved By (Mentor)': (pass as any).mentor.name,
       'Mentor Email': (pass as any).mentor.email,
       'Mentor Phone Number': (pass as any).mentor.mobile || 'Not Available',
       'Reason for Outpass': pass.reason,
       'Status': pass.status,
-      'Time of Request': pass.appliedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-      'Time of Approval': pass.updatedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-      'QR Generated At': pass.qrGeneratedAt!.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-      'Time of Scanning': pass.scannedAt!.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-      'Duration Outside (Minutes)': Math.floor((pass.scannedAt!.getTime() - pass.qrGeneratedAt!.getTime()) / (1000 * 60)),
       'Request Date': pass.appliedAt.toISOString().split('T')[0],
       'Request Time': pass.appliedAt.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }),
       'Approval Date': pass.updatedAt.toISOString().split('T')[0],
       'Approval Time': pass.updatedAt.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      'QR Generated Date': pass.qrGeneratedAt!.toISOString().split('T')[0],
+      'QR Generated Time': pass.qrGeneratedAt!.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }),
       'Scan Date': pass.scannedAt!.toISOString().split('T')[0],
       'Scan Time': pass.scannedAt!.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }),
-      'Day of Week': pass.appliedAt.toLocaleDateString('en-IN', { weekday: 'long', timeZone: 'Asia/Kolkata' }),
-      'Time Outside (Hours)': Math.round((pass.scannedAt!.getTime() - pass.qrGeneratedAt!.getTime()) / (1000 * 60 * 60) * 100) / 100
+      'Day of Week': pass.appliedAt.toLocaleDateString('en-IN', { weekday: 'long', timeZone: 'Asia/Kolkata' })
     }));
 
-    // Create summary data for approved & scanned outpasses
+    // Create summary data for scanned outpasses
     const summaryData = [
-      { 'Metric': 'Total Approved & Scanned Outpasses', 'Value': outpasses.length },
-      { 'Metric': 'Average Duration Outside (Minutes)', 'Value': outpasses.length > 0 
-        ? Math.round(outpasses.reduce((sum, pass) => 
-            sum + Math.floor((pass.scannedAt!.getTime() - pass.qrGeneratedAt!.getTime()) / (1000 * 60)), 0) / outpasses.length)
-        : 0 },
-      { 'Metric': 'Longest Duration Outside (Minutes)', 'Value': outpasses.length > 0 
-        ? Math.max(...outpasses.map(pass => 
-            Math.floor((pass.scannedAt!.getTime() - pass.qrGeneratedAt!.getTime()) / (1000 * 60))))
-        : 0 },
-      { 'Metric': 'Shortest Duration Outside (Minutes)', 'Value': outpasses.length > 0 
-        ? Math.min(...outpasses.map(pass => 
-            Math.floor((pass.scannedAt!.getTime() - pass.qrGeneratedAt!.getTime()) / (1000 * 60))))
-        : 0 },
+      { 'Metric': 'Total Scanned Outpasses', 'Value': outpasses.length },
       { 'Metric': 'Date Range', 'Value': startDate && endDate 
         ? `${startDate} to ${endDate}`
         : 'All Time' },
+      { 'Metric': 'Unique Students', 'Value': new Set(outpasses.map(pass => pass.student.email)).size },
+      { 'Metric': 'Unique Mentors', 'Value': new Set(outpasses.map(pass => pass.mentor.email)).size },
       { 'Metric': 'Report Generated At', 'Value': new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) }
     ];
 
@@ -1499,14 +1485,14 @@ export const downloadApprovedScannedReport = async (req: Request, res: Response)
 
     // Add detailed data sheet
     const dataSheet = XLSX.utils.json_to_sheet(reportData);
-    XLSX.utils.book_append_sheet(workbook, dataSheet, 'Approved & Scanned Outpasses');
+    XLSX.utils.book_append_sheet(workbook, dataSheet, 'Scanned Outpasses');
 
     // Generate file name
     const dateRange = startDate && endDate 
       ? `${startDate}_to_${endDate}`
       : `until_${new Date().toISOString().split('T')[0]}`;
     
-    const fileName = `approved_scanned_outpasses_${dateRange}_${Date.now()}.xlsx`;
+    const fileName = `scanned_outpasses_${dateRange}_${Date.now()}.xlsx`;
     const filePath = path.join(__dirname, '../../temp', fileName);
 
     // Ensure temp directory exists
@@ -1526,7 +1512,7 @@ export const downloadApprovedScannedReport = async (req: Request, res: Response)
     const fileBuffer = fs.readFileSync(filePath);
     res.send(fileBuffer);
 
-    console.log('✅ Approved & scanned report sent successfully');
+    console.log('✅ Scanned outpasses report sent successfully');
     
     // Clean up file after sending
     setTimeout(() => {
@@ -1537,6 +1523,629 @@ export const downloadApprovedScannedReport = async (req: Request, res: Response)
 
   } catch (error) {
     console.error('❌ Error generating approved & scanned report:', error);
-    res.status(500).json({ error: 'Failed to generate approved & scanned report' });
+    res.status(500).json({ error: 'Failed to generate scanned outpasses report' });
+  }
+};
+
+/**
+ * Smart column detection function
+ * Analyzes Excel data to automatically detect column types based on content patterns
+ */
+function detectColumns(data: any[]): {
+  rollNumber: string | null;
+  studentName: string | null;
+  studentMobile: string | null;
+  parentMobile: string | null;
+  mentorName: string | null;
+  mentorEmail: string | null;
+  mentorPhone: string | null;
+} {
+  if (!data || data.length === 0) {
+    return {
+      rollNumber: null,
+      studentName: null,
+      studentMobile: null,
+      parentMobile: null,
+      mentorName: null,
+      mentorEmail: null,
+      mentorPhone: null
+    };
+  }
+
+  const columns = Object.keys(data[0]);
+  const mapping = {
+    rollNumber: null as string | null,
+    studentName: null as string | null,
+    studentMobile: null as string | null,
+    parentMobile: null as string | null,
+    mentorName: null as string | null,
+    mentorEmail: null as string | null,
+    mentorPhone: null as string | null
+  };
+
+  // Sample multiple rows to get better pattern detection (skip header rows)
+  const sampleRows = data.slice(1, Math.min(11, data.length)).filter(row => {
+    const firstValue = Object.values(row)[0]?.toString();
+    return firstValue && !firstValue.includes('Sno') && !firstValue.includes('CSBS') && !firstValue.includes('entry');
+  });
+
+  console.log('🔍 Sample rows for detection:', sampleRows.slice(0, 3));
+
+  // For Excel sheets with positional data (common format), try to detect by position and content
+  const columnArray = columns;
+  
+  for (let i = 0; i < columnArray.length; i++) {
+    const column = columnArray[i];
+    const columnLower = column.toLowerCase();
+    const sampleValues = sampleRows.map(row => row[column]).filter(val => val && val.toString().trim());
+
+    // Skip if no valid sample values
+    if (sampleValues.length === 0) continue;
+
+    console.log(`🔍 Analyzing column ${i}: "${column}" with sample values:`, sampleValues.slice(0, 3));
+
+    // Detect Roll Number - look for patterns like 24071A3201, 22071A0508, etc.
+    if (!mapping.rollNumber && (
+      columnLower.includes('roll') || 
+      columnLower.includes('ht.no') || 
+      columnLower.includes('htno') ||
+      columnLower.includes('student data') ||
+      sampleValues.some(val => /^\d{2}071[A-Z]\d{4}$/.test(val?.toString()))
+    )) {
+      mapping.rollNumber = column;
+      console.log(`✅ Detected Roll Number column: ${column}`);
+      continue;
+    }
+
+    // Detect Student Name - prioritize names that don't appear to be mentor names
+    if (!mapping.studentName && sampleValues.length > 0) {
+      const hasStudentNames = sampleValues.some(val => {
+        const str = val?.toString();
+        if (!str || str.length < 3) return false;
+        // Student names are usually all caps, multiple words, no titles
+        return /^[A-Z\s]+$/.test(str) && 
+               str.split(' ').length >= 2 && 
+               !str.includes('Dr.') && 
+               !str.includes('Prof.') &&
+               !str.includes('.') &&
+               !str.includes('@');
+      });
+      
+      if (hasStudentNames && (
+        columnLower.includes('student') ||
+        columnLower.includes('name') ||
+        i === 2 // Common position for student name
+      )) {
+        mapping.studentName = column;
+        console.log(`✅ Detected Student Name column: ${column}`);
+        continue;
+      }
+    }
+
+    // Detect Student Mobile - first mobile number column
+    if (!mapping.studentMobile && (
+      (columnLower.includes('student') && columnLower.includes('mobile')) ||
+      (columnLower.includes('mobile') && !columnLower.includes('parent')) ||
+      (sampleValues.some(val => /^[6-9]\d{9}$/.test(val?.toString())) && i < 6) // Usually appears before mentor phone
+    )) {
+      mapping.studentMobile = column;
+      console.log(`✅ Detected Student Mobile column: ${column}`);
+      continue;
+    }
+
+    // Detect Parent Mobile - second mobile number column or parent-specific
+    if (!mapping.parentMobile && mapping.studentMobile && (
+      columnLower.includes('parent') ||
+      columnLower.includes('father') ||
+      (sampleValues.some(val => /^[6-9]\d{9}$/.test(val?.toString())) && 
+       column !== mapping.studentMobile && i < 7) // Usually appears after student mobile
+    )) {
+      mapping.parentMobile = column;
+      console.log(`✅ Detected Parent Mobile column: ${column}`);
+      continue;
+    }
+
+    // Detect Mentor Email first (more reliable identifier)
+    if (!mapping.mentorEmail && (
+      columnLower.includes('email') ||
+      sampleValues.some(val => val?.toString().includes('@vnrvjiet.in'))
+    )) {
+      mapping.mentorEmail = column;
+      console.log(`✅ Detected Mentor Email column: ${column}`);
+      continue;
+    }
+
+    // Detect Mentor Name - look for names with titles or different pattern from student names
+    if (!mapping.mentorName) {
+      const hasMentorNames = sampleValues.some(val => {
+        const str = val?.toString();
+        if (!str || str.length < 3) return false;
+        // Check if it's NOT a phone number first
+        if (/^\d{10}$/.test(str)) return false;
+        // Mentor names often have titles, dots, or mixed case, and are not all uppercase like student names
+        return str.includes('Dr.') || 
+               str.includes('Prof.') || 
+               str.includes('.') ||
+               /^[A-Z][a-z]+/.test(str) || // Mixed case pattern like "G.Lakshmi Deepthi"
+               (str.split(' ').length >= 2 && !(/^[A-Z\s]+$/.test(str))); // Multi-word but not all caps
+      });
+      
+      if (hasMentorNames && (
+        columnLower.includes('mentor') ||
+        (i > 5 && mapping.studentName && column !== mapping.studentName && // Usually appears after student data
+         !sampleValues.some(val => /^\d{10}$/.test(val?.toString()))) // And not a phone number column
+      )) {
+        mapping.mentorName = column;
+        console.log(`✅ Detected Mentor Name column: ${column}`);
+        continue;
+      }
+    }
+
+    // Detect Mentor Phone - last mobile number column, ensure it's actually a phone number
+    if (!mapping.mentorPhone && (
+      columnLower.includes('mentor') && (columnLower.includes('phone') || columnLower.includes('mobile')) ||
+      (sampleValues.some(val => /^[6-9]\d{9}$/.test(val?.toString())) && 
+       column !== mapping.studentMobile && 
+       column !== mapping.parentMobile &&
+       column !== mapping.mentorName && // Don't confuse with mentor name
+       i > 6) // Usually the last mobile column
+    )) {
+      mapping.mentorPhone = column;
+      console.log(`✅ Detected Mentor Phone column: ${column}`);
+      continue;
+    }
+  }
+
+  console.log('🎯 Final column mapping:', mapping);
+  return mapping;
+}
+
+/**
+ * POST /api/admin/bulk-add-users
+ * Bulk add students and mentors from Excel file with automatic email generation (HOD only)
+ */
+export const bulkAddUsers = async (req: Request, res: Response) => {
+  let filePath: string | undefined;
+  
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No Excel file uploaded' });
+    }
+
+    filePath = req.file.path;
+    console.log('📁 Processing bulk users Excel file:', filePath);
+
+    // Read and parse Excel file
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(worksheet);
+
+    if (!data || data.length === 0) {
+      cleanupFile(filePath);
+      return res.status(400).json({ error: 'Excel file is empty or invalid' });
+    }
+
+    console.log(`📊 Processing ${data.length} rows from Excel file`);
+    console.log('📋 Sample row data:', JSON.stringify(data[0], null, 2));
+    console.log('📋 Available columns:', Object.keys(data[0] || {}));
+
+    // Smart column detection - find the right columns based on data patterns
+    const columnMapping = detectColumns(data);
+    console.log('🎯 Detected column mapping:', columnMapping);
+
+    if (!columnMapping.rollNumber || !columnMapping.studentName) {
+      cleanupFile(filePath);
+      return res.status(400).json({ 
+        error: 'Could not detect required columns. Please ensure your Excel has roll number and student name columns.',
+        detectedColumns: Object.keys(data[0] || {})
+      });
+    }
+
+    // Process results tracking
+    const results = {
+      success: true,
+      studentsCreated: 0,
+      studentsUpdated: 0,
+      mentorsCreated: 0,
+      mappingsCreated: 0,
+      errors: [] as string[],
+      warnings: [] as string[],
+      studentsWithoutMentors: [] as Array<{ rollNumber: string; name: string; email: string }>,
+      details: {
+        students: [] as Array<{ rollNumber: string; email: string; status: 'created' | 'updated' | 'error' }>,
+        mentors: [] as Array<{ email: string; name: string; status: 'created' | 'existing' }>,
+        mappings: [] as Array<{ studentEmail: string; mentorEmail: string; status: 'created' | 'error' }>
+      }
+    };
+
+    // Process each row
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i] as any;
+      const rowNumber = i + 2; // Excel row number (accounting for header)
+
+      try {
+        // Extract data from row using dynamic column mapping
+        const rollNumber = columnMapping.rollNumber ? row[columnMapping.rollNumber]?.toString().trim() : undefined;
+        const studentName = columnMapping.studentName ? row[columnMapping.studentName]?.toString().trim() : undefined;
+        const studentMobile = columnMapping.studentMobile ? row[columnMapping.studentMobile]?.toString().trim() : undefined;
+        const parentMobile = columnMapping.parentMobile ? row[columnMapping.parentMobile]?.toString().trim() : undefined;
+        const mentorName = columnMapping.mentorName ? row[columnMapping.mentorName]?.toString().trim() : undefined;
+        const mentorEmail = columnMapping.mentorEmail ? row[columnMapping.mentorEmail]?.toString().trim().toLowerCase() : undefined;
+        const mentorPhone = columnMapping.mentorPhone ? row[columnMapping.mentorPhone]?.toString().trim() : undefined;
+
+        console.log(`🔍 Row ${rowNumber} data:`, {
+          rollNumber,
+          studentName,
+          studentMobile,
+          parentMobile,
+          mentorName,
+          mentorEmail,
+          mentorPhone
+        });
+
+        console.log(`🔍 Row ${rowNumber} column mapping:`, columnMapping);
+
+        // Skip rows with missing basic info (might be section headers or empty rows)
+        if (!rollNumber || !studentName || 
+            rollNumber === 'Sno' || rollNumber === 'H.T.NO.' || 
+            studentName === 'Name of the Student' ||
+            rollNumber.includes('CSBS') || rollNumber.includes('entry') ||
+            rollNumber.includes('Student Data') ||
+            !rollNumber.match(/^\d{2}071[A-Z]\d{4}$/)) { // Validate roll number format
+          console.log(`⚠️ Skipping row ${rowNumber}: Header row, invalid roll number, or missing student name (rollNumber: "${rollNumber}", studentName: "${studentName}")`);
+          continue;
+        }
+
+        // Generate student email from roll number
+        const studentEmail = `${rollNumber.toLowerCase()}@vnrvjiet.in`;
+
+        // Check if mentor info is provided (all mentor fields must be present)
+        const hasMentorInfo = mentorName && mentorEmail && 
+                            mentorName !== '' && mentorEmail !== '' &&
+                            mentorName !== 'undefined' && mentorEmail !== 'undefined';
+        
+        if (hasMentorInfo && !mentorEmail.includes('@vnrvjiet.in')) {
+          results.errors.push(`Row ${rowNumber}: Mentor email must be from @vnrvjiet.in domain`);
+          // Still continue to process the student without mentor
+        }
+
+        // Process Mentor first (only if mentor info is provided)
+        let mentor: any = null;
+        if (hasMentorInfo && mentorEmail.includes('@vnrvjiet.in')) {
+          try {
+            // Check if mentor already exists
+            mentor = await prisma.user.findUnique({
+              where: { email: mentorEmail }
+            });
+
+            if (!mentor) {
+              // Create new mentor
+              mentor = await prisma.user.create({
+                data: {
+                  email: mentorEmail,
+                  name: mentorName,
+                  role: Role.MENTOR,
+                  mobile: mentorPhone || null,
+                  parentMobile: null
+                } as any
+              });
+              results.mentorsCreated++;
+              results.details.mentors.push({
+                email: mentorEmail,
+                name: mentorName,
+                status: 'created'
+              });
+              console.log(`✅ Created mentor: ${mentorEmail}`);
+            } else {
+              // Update mentor's mobile if provided and different
+              if (mentorPhone && (mentor as any).mobile !== mentorPhone) {
+                await prisma.user.update({
+                  where: { id: mentor.id },
+                  data: { mobile: mentorPhone } as any
+                });
+              }
+              results.details.mentors.push({
+                email: mentorEmail,
+                name: mentor.name,
+                status: 'existing'
+              });
+            }
+          } catch (mentorError) {
+            results.errors.push(`Row ${rowNumber}: Failed to process mentor ${mentorEmail}: ${mentorError}`);
+            // Don't skip student processing - continue without mentor
+            mentor = null;
+          }
+        }
+
+        // Process Student
+        let student;
+        try {
+          // Check if student already exists
+          student = await prisma.user.findUnique({
+            where: { email: studentEmail }
+          });
+
+          if (!student) {
+            // Create new student
+            student = await prisma.user.create({
+              data: {
+                email: studentEmail,
+                name: studentName,
+                role: Role.STUDENT,
+                mobile: studentMobile || null,
+                parentMobile: parentMobile || null
+              } as any
+            });
+            results.studentsCreated++;
+            results.details.students.push({
+              rollNumber,
+              email: studentEmail,
+              status: 'created'
+            });
+            console.log(`✅ Created student: ${studentEmail}`);
+          } else {
+            // Update existing student's details if different
+            const updateData: any = {};
+            if (studentName !== student.name) updateData.name = studentName;
+            if (studentMobile && (student as any).mobile !== studentMobile) updateData.mobile = studentMobile;
+            if (parentMobile && (student as any).parentMobile !== parentMobile) updateData.parentMobile = parentMobile;
+
+            if (Object.keys(updateData).length > 0) {
+              await prisma.user.update({
+                where: { id: student.id },
+                data: updateData
+              });
+            }
+            
+            results.studentsUpdated++;
+            results.details.students.push({
+              rollNumber,
+              email: studentEmail,
+              status: 'updated'
+            });
+          }
+        } catch (studentError) {
+          results.errors.push(`Row ${rowNumber}: Failed to process student ${rollNumber}: ${studentError}`);
+          continue;
+        }
+
+        // Create Student-Mentor Mapping (only if mentor exists)
+        if (mentor) {
+          try {
+            // Check if mapping already exists
+            const existingMapping = await prisma.studentMentor.findUnique({
+              where: { studentId: student.id }
+            });
+
+            if (!existingMapping) {
+              // Create new mapping
+              await prisma.studentMentor.create({
+                data: {
+                  studentId: student.id,
+                  mentorId: mentor.id
+                }
+              });
+              results.mappingsCreated++;
+              results.details.mappings.push({
+                studentEmail,
+                mentorEmail,
+                status: 'created'
+              });
+              console.log(`✅ Mapped ${studentEmail} to ${mentorEmail}`);
+            } else if (existingMapping.mentorId !== mentor.id) {
+              // Update mapping to new mentor
+              await prisma.studentMentor.update({
+                where: { studentId: student.id },
+                data: { mentorId: mentor.id }
+              });
+              results.mappingsCreated++;
+              results.details.mappings.push({
+                studentEmail,
+                mentorEmail,
+                status: 'created'
+              });
+              console.log(`✅ Updated mapping: ${studentEmail} to ${mentorEmail}`);
+            }
+          } catch (mappingError) {
+            results.errors.push(`Row ${rowNumber}: Failed to create mapping for ${rollNumber}: ${mappingError}`);
+          }
+        } else {
+          // No mentor info provided - add to students without mentors list
+          results.studentsWithoutMentors.push({
+            rollNumber,
+            name: studentName,
+            email: studentEmail
+          });
+          results.warnings.push(`Row ${rowNumber}: Student ${rollNumber} (${studentName}) created without mentor assignment - missing mentor information`);
+        }
+
+      } catch (rowError) {
+        results.errors.push(`Row ${rowNumber}: Unexpected error processing row: ${rowError}`);
+      }
+    }
+
+    // Clean up uploaded file
+    cleanupFile(filePath);
+
+    // Determine success status
+    results.success = results.errors.length < data.length; // Success if not all rows failed
+
+    const summary = {
+      totalRows: data.length,
+      studentsCreated: results.studentsCreated,
+      studentsUpdated: results.studentsUpdated,
+      mentorsCreated: results.mentorsCreated,
+      mappingsCreated: results.mappingsCreated,
+      errorsCount: results.errors.length
+    };
+
+    console.log('✅ Bulk user creation complete:', summary);
+
+    res.json(results);
+
+  } catch (error) {
+    console.error('❌ Bulk user creation failed:', error);
+    
+    // Clean up file on error
+    if (filePath) {
+      cleanupFile(filePath);
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to process Excel file',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      studentsCreated: 0,
+      studentsUpdated: 0,
+      mentorsCreated: 0,
+      mappingsCreated: 0,
+      errors: ['Server error occurred during processing']
+    });
+  }
+};
+
+/**
+ * POST /api/admin/undo-bulk-imports (Development only)
+ * Undo bulk imported users while preserving manually created users
+ */
+export const undoBulkImports = async (req: Request, res: Response) => {
+  try {
+    // Only allow in development mode
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({ 
+        error: 'This feature is only available in development mode' 
+      });
+    }
+
+    console.log('🔄 Starting undo bulk imports operation...');
+
+    // Strategy: Remove users that were likely created via bulk import
+    // We'll identify them by:
+    // 1. Students with email pattern matching roll numbers (auto-generated emails)
+    // 2. Mentors created on the same day as bulk operations
+    // 3. Student-mentor mappings associated with these users
+
+    // First, find students with auto-generated emails (roll number pattern)
+    const bulkStudents = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT',
+        email: {
+          // Match roll number pattern: 24071a3201@vnrvjiet.in
+          contains: '071',
+        },
+        // Additional filter: created recently (within last hour as a safety measure)
+        createdAt: {
+          gte: new Date(Date.now() - 60 * 60 * 1000) // Last hour
+        }
+      }
+    });
+
+    // Find mentors created recently (likely from bulk import)
+    const bulkMentors = await prisma.user.findMany({
+      where: {
+        role: 'MENTOR',
+        // Only mentors created in the last hour
+        createdAt: {
+          gte: new Date(Date.now() - 60 * 60 * 1000) // Last hour
+        }
+      }
+    });
+
+    console.log(`🔍 Found ${bulkStudents.length} bulk students and ${bulkMentors.length} bulk mentors to remove`);
+
+    // Get student and mentor IDs
+    const bulkStudentIds = bulkStudents.map(s => s.id);
+    const bulkMentorIds = bulkMentors.map(m => m.id);
+    const allBulkUserIds = [...bulkStudentIds, ...bulkMentorIds];
+
+    // Remove student-mentor mappings for these users
+    const deletedMappings = await prisma.studentMentor.deleteMany({
+      where: {
+        OR: [
+          { studentId: { in: bulkStudentIds } },
+          { mentorId: { in: bulkMentorIds } }
+        ]
+      }
+    });
+
+    // Remove the bulk imported users
+    const deletedUsers = await prisma.user.deleteMany({
+      where: {
+        id: { in: allBulkUserIds }
+      }
+    });
+
+    console.log(`✅ Undo bulk imports complete:`);
+    console.log(`   - Deleted ${bulkStudents.length} bulk students`);
+    console.log(`   - Deleted ${bulkMentors.length} bulk mentors`);
+    console.log(`   - Deleted ${deletedMappings.count} mappings`);
+
+    res.json({
+      success: true,
+      message: 'Bulk imported users have been successfully removed',
+      deletedStudents: bulkStudents.length,
+      deletedMentors: bulkMentors.length,
+      deletedMappings: deletedMappings.count,
+      preservedExistingUsers: true
+    });
+
+  } catch (error) {
+    console.error('❌ Error undoing bulk imports:', error);
+    res.status(500).json({ 
+      error: 'Failed to undo bulk imports',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+/**
+ * GET /api/admin/unmapped-students
+ * Get all students without mentor assignments
+ */
+export const getUnmappedStudents = async (req: Request, res: Response) => {
+  try {
+    console.log('🔍 Fetching students without mentor assignments...');
+    
+    // Get all students
+    const allStudents = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT'
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        mobile: true,
+        parentMobile: true
+      }
+    });
+
+    // Get all student IDs that have mentor mappings
+    const mappedStudentIds = await prisma.studentMentor.findMany({
+      select: {
+        studentId: true
+      }
+    });
+
+    const mappedIds = new Set(mappedStudentIds.map(m => m.studentId));
+
+    // Filter out students that have mappings
+    const unmappedStudents = allStudents.filter(student => !mappedIds.has(student.id));
+
+    console.log(`📊 Found ${unmappedStudents.length} students without mentor assignments`);
+
+    res.json({
+      success: true,
+      unmappedStudents,
+      count: unmappedStudents.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching unmapped students:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch unmapped students',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };

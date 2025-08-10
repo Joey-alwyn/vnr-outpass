@@ -29,11 +29,26 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ show, onHide, onUserAdded }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that parent mobile is provided for students
+    if (formData.role === 'STUDENT' && !formData.parentMobile.trim()) {
+      toast.error('Validation Error', {
+        description: 'Parent mobile number is required for students.'
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
       toast.loading('Creating user...');
-      await api.post('/admin/users', formData);
+      
+      // Prepare the data to send (exclude parentMobile for non-students)
+      const submitData = formData.role === 'STUDENT' 
+        ? formData 
+        : { ...formData, parentMobile: '' };
+        
+      await api.post('/admin/users', submitData);
       
       toast.dismiss();
       toast.success('User Created', {
@@ -62,10 +77,21 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ show, onHide, onUserAdded }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    
+    // If role is changing and not STUDENT, clear parent mobile
+    if (name === 'role' && value !== 'STUDENT') {
+      setFormData({
+        ...formData,
+        role: value as 'STUDENT' | 'MENTOR' | 'HOD' | 'SECURITY',
+        parentMobile: ''
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   if (!show) return null;
@@ -90,6 +116,28 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ show, onHide, onUserAdded }
           <form onSubmit={handleSubmit}>
             <div className="modal-body p-4">
               <div className="row g-3">
+                <div className="col-12">
+                  <label className="form-label fw-medium">
+                    <UserCheck size={16} className="me-1" />
+                    User Role *
+                  </label>
+                  <select
+                    className="form-select"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="STUDENT">Student</option>
+                    <option value="MENTOR">Mentor</option>
+                    <option value="SECURITY">Security</option>
+                    <option value="HOD">HOD</option>
+                  </select>
+                  <div className="form-text">
+                    Choose the appropriate role for this user in the system.
+                  </div>
+                </div>
+                
                 <div className="col-md-6">
                   <label className="form-label fw-medium">
                     <User size={16} className="me-1" />
@@ -138,42 +186,25 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ show, onHide, onUserAdded }
                   />
                 </div>
                 
-                <div className="col-md-6">
-                  <label className="form-label fw-medium">
-                    <Phone size={16} className="me-1" />
-                    Parent Mobile
-                  </label>
-                  <input
-                    type="tel"
-                    className="form-control"
-                    name="parentMobile"
-                    value={formData.parentMobile}
-                    onChange={handleChange}
-                    placeholder="Enter parent mobile (optional)"
-                  />
-                </div>
-                
-                <div className="col-12">
-                  <label className="form-label fw-medium">
-                    <UserCheck size={16} className="me-1" />
-                    User Role *
-                  </label>
-                  <select
-                    className="form-select"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="STUDENT">Student</option>
-                    <option value="MENTOR">Mentor</option>
-                    <option value="SECURITY">Security</option>
-                    <option value="HOD">HOD</option>
-                  </select>
-                  <div className="form-text">
-                    Choose the appropriate role for this user in the system.
+                {/* Conditional Parent Mobile Field - Only for Students */}
+                {formData.role === 'STUDENT' && (
+                  <div className="col-md-6">
+                    <label className="form-label fw-medium">
+                      <Phone size={16} className="me-1" />
+                      Parent Mobile Number *
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      name="parentMobile"
+                      value={formData.parentMobile}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter parent mobile number"
+                    />
+
                   </div>
-                </div>
+                )}
               </div>
             </div>
             

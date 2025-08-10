@@ -11,7 +11,9 @@ import {
   Calendar,
   Award,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../../api';
@@ -27,6 +29,7 @@ import {
 } from "../ui/alert-dialog";
 import AddUserModal from './AddUserModal';
 import EditUserModal from './EditUserModal';
+import BulkAddModal from './BulkAddModal';
 
 interface User {
   id: string;
@@ -58,8 +61,13 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [loadingDependencies, setLoadingDependencies] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showBulkAddModal, setShowBulkAddModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(15);
 
   // Utility functions
   const formatDate = (dateString: string) => {
@@ -98,6 +106,102 @@ const UserManagement: React.FC<UserManagementProps> = ({
     const matchesRole = filterRole === 'ALL' || user.role === filterRole;
     return matchesSearch && matchesRole;
   });
+
+  // Pagination calculations
+  const totalUsers = filteredUsers.length;
+  const totalPages = Math.ceil(totalUsers / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterRole]);
+
+  // Pagination component
+  const Pagination: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    className?: string;
+  }> = ({ currentPage, totalPages, onPageChange, className = '' }) => {
+    if (totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisiblePages = 5;
+      
+      if (totalPages <= maxVisiblePages) {
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        const start = Math.max(1, currentPage - 2);
+        const end = Math.min(totalPages, start + maxVisiblePages - 1);
+        
+        if (start > 1) {
+          pages.push(1);
+          if (start > 2) pages.push('...');
+        }
+        
+        for (let i = start; i <= end; i++) {
+          pages.push(i);
+        }
+        
+        if (end < totalPages) {
+          if (end < totalPages - 1) pages.push('...');
+          pages.push(totalPages);
+        }
+      }
+      
+      return pages;
+    };
+
+    return (
+      <nav className={`d-flex justify-content-center ${className}`}>
+        <ul className="pagination pagination-sm">
+          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+            <button
+              className="page-link"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft size={16} />
+            </button>
+          </li>
+          
+          {getPageNumbers().map((page, index) => (
+            <li
+              key={index}
+              className={`page-item ${typeof page === 'number' && page === currentPage ? 'active' : ''} ${typeof page === 'string' ? 'disabled' : ''}`}
+            >
+              {typeof page === 'number' ? (
+                <button
+                  className="page-link"
+                  onClick={() => onPageChange(page)}
+                >
+                  {page}
+                </button>
+              ) : (
+                <span className="page-link">{page}</span>
+              )}
+            </li>
+          ))}
+          
+          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+            <button
+              className="page-link"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </li>
+        </ul>
+      </nav>
+    );
+  };
 
   const handleDeleteClick = async (user: User) => {
     setUserToDelete(user);
@@ -166,23 +270,23 @@ const UserManagement: React.FC<UserManagementProps> = ({
           </div>
           
           <div className="col-lg-6">
-            <div className="row g-3">
-              <div className="col-md-5">
-                <div className="input-group">
-                  <span className="input-group-text bg-white border-end-0">
-                    <Search style={{width: '1rem', height: '1rem'}} className="text-muted" />
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="form-control border-start-0 bg-white"
-                  />
-                </div>
+            <div className="mb-3">
+              <div className="input-group">
+                <span className="input-group-text bg-white border-end-0">
+                  <Search style={{width: '1rem', height: '1rem'}} className="text-muted" />
+                </span>
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="form-control border-start-0 bg-white"
+                />
               </div>
-              
-              <div className="col-md-4">
+            </div>
+            
+            <div className="row g-2">
+              <div className="col-12 col-md-6">
                 <select
                   value={filterRole}
                   onChange={(e) => setFilterRole(e.target.value)}
@@ -196,13 +300,27 @@ const UserManagement: React.FC<UserManagementProps> = ({
                 </select>
               </div>
               
-              <div className="col-md-3">
+              <div className="col-6 col-md-3">
                 <button 
                   onClick={() => setShowAddUserModal(true)}
                   className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
                 >
-                  <UserPlus className="me-2" style={{width: '1.25rem', height: '1.25rem'}} />
-                  Add User
+                  <UserPlus className="me-2 d-none d-sm-block" style={{width: '1.25rem', height: '1.25rem'}} />
+                  <UserPlus className="me-1 d-block d-sm-none" size={16} />
+                  <span className="d-none d-sm-block">Add User</span>
+                  <span className="d-block d-sm-none">Add</span>
+                </button>
+              </div>
+              
+              <div className="col-6 col-md-3">
+                <button 
+                  onClick={() => setShowBulkAddModal(true)}
+                  className="btn btn-success w-100 d-flex align-items-center justify-content-center"
+                >
+                  <Users className="me-2 d-none d-sm-block" style={{width: '1.25rem', height: '1.25rem'}} />
+                  <Users className="me-1 d-block d-sm-none" size={16} />
+                  <span className="d-none d-sm-block">Bulk Add</span>
+                  <span className="d-block d-sm-none">Bulk</span>
                 </button>
               </div>
             </div>
@@ -223,7 +341,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <tr key={user.id} className="border-bottom">
                   <td className="px-4 py-3">
                     <div className="d-flex align-items-center">
@@ -266,7 +384,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       ) : (
                         <span className="text-muted fst-italic small">No mobile</span>
                       )}
-                      {user.parentMobile && (
+                      {user.role === 'STUDENT' && user.parentMobile && (
                         <div className="contact-secondary d-flex align-items-center text-muted small">
                           <Phone className="me-1" style={{width: '0.75rem', height: '0.75rem'}} />
                           Parent: {user.parentMobile}
@@ -316,6 +434,20 @@ const UserManagement: React.FC<UserManagementProps> = ({
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="d-flex justify-content-between align-items-center mt-4">
+            <small className="text-muted">
+              Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of {totalUsers} users
+            </small>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
         
         {filteredUsers.length === 0 && (
           <div className="empty-state text-center py-5">
@@ -569,6 +701,13 @@ const UserManagement: React.FC<UserManagementProps> = ({
         }}
         onUserUpdated={onRefreshUsers}
         user={selectedUser}
+      />
+
+      {/* Bulk Add Modal */}
+      <BulkAddModal
+        show={showBulkAddModal}
+        onHide={() => setShowBulkAddModal(false)}
+        onUsersAdded={onRefreshUsers}
       />
     </div>
   );

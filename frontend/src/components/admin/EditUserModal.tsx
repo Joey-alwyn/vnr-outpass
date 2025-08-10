@@ -46,6 +46,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
     e.preventDefault();
     if (!user) return;
     
+    // Validate that parent mobile is provided when role is STUDENT
+    if (formData.role === 'STUDENT' && !formData.parentMobile.trim()) {
+      toast.error('Validation Error', {
+        description: 'Parent mobile number is required for students.'
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -65,9 +73,12 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
       const parentMobileChanged = formData.parentMobile !== user.parentMobile;
       
       if (mobileChanged || parentMobileChanged) {
+        // Clear parent mobile if role is not STUDENT
+        const parentMobileToSend = formData.role === 'STUDENT' ? formData.parentMobile : '';
+        
         await api.put(`/admin/users/${user.id}/mobile`, { 
           mobile: formData.mobile,
-          parentMobile: formData.parentMobile 
+          parentMobile: parentMobileToSend 
         });
         
         if (mobileChanged && parentMobileChanged) {
@@ -104,10 +115,20 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // If role is changing away from STUDENT, clear parent mobile
+    if (name === 'role' && value !== 'STUDENT') {
+      setFormData(prev => ({
+        ...prev,
+        role: value as 'STUDENT' | 'MENTOR' | 'HOD' | 'SECURITY',
+        parentMobile: ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   if (!show || !user) return null;
@@ -177,10 +198,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
                     onChange={handleChange}
                     placeholder="Enter mobile number (optional)"
                   />
-                  <small className="text-success">✓ Mobile number can be updated</small>
                 </div>
                 
-                {formData.role === 'STUDENT' ? (
+                {formData.role === 'STUDENT' && (
                   <div className="col-md-6">
                     <label className="form-label fw-medium">
                       <Phone size={16} className="me-1" />
@@ -194,25 +214,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
                       onChange={handleChange}
                       placeholder="Enter parent mobile number"
                       required
-                    />
-                    <small className="text-success">✓ Parent mobile number can be updated (required for students)</small>
-                  </div>
-                ) : (
-                  <div className="col-md-6">
-                    <label className="form-label fw-medium text-muted">
-                      <Phone size={16} className="me-1" />
-                      Parent Mobile
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value="Not applicable for this role"
-                      readOnly
-                      disabled
-                      style={{ backgroundColor: '#f1f3f4', color: '#6c757d' }}
-                    />
-                    <small className="text-muted">Only students have parent mobile</small>
-                  </div>
+                    />                  </div>
                 )}
                 
                 <div className="col-12">

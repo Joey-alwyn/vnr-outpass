@@ -3,8 +3,7 @@ import {
   TrendingUp,
   Users,
   UserCheck,
-  FileText,
-  Zap
+  FileText
 } from 'lucide-react';
 
 interface AdminNavigationProps {
@@ -32,12 +31,12 @@ const AdminNavigation: React.FC<AdminNavigationProps> = ({ activeTab, onTabChang
       icon: UserCheck, 
       description: 'Student-Mentor' 
     },
-    { 
-      id: 'actions', 
-      name: 'Quick Actions', 
-      icon: Zap, 
-      description: 'System Alerts' 
-    },
+    // { 
+    //   id: 'actions', 
+    //   name: 'Quick Actions', 
+    //   icon: Zap, 
+    //   description: 'System Alerts' 
+    // },
     { 
       id: 'reports', 
       name: 'Reports', 

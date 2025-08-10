@@ -166,7 +166,7 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
 
   const exportApprovedScannedReport = async () => {
     try {
-      toast.loading('Preparing approved & scanned outpasses report...');
+      toast.loading('Preparing scanned passes report...');
       const response = await api.post('/admin/download-approved-scanned-report', {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate
@@ -177,20 +177,20 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
       const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `approved-scanned-outpasses-${dateRange.startDate}-to-${dateRange.endDate}.xlsx`;
+      link.download = `scanned-outpasses-${dateRange.startDate}-to-${dateRange.endDate}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
       toast.dismiss();
-      toast.success('Approved & Scanned Report Exported', {
-        description: 'Report with completed outpasses has been successfully exported.'
+      toast.success('Scanned Passes Report Exported', {
+        description: 'Report with scanned outpasses has been successfully exported.'
       });
     } catch (error) {
       toast.dismiss();
       toast.error('Export Failed', {
-        description: 'Unable to export approved & scanned report. Please try again.'
+        description: 'Unable to export scanned passes report. Please try again.'
       });
     }
   };
@@ -217,10 +217,10 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
           </div>
         </div>
         
-        <div className="d-flex gap-2 align-items-center">
+        <div className="d-flex gap-3 align-items-end">
           <div className="d-flex gap-2">
             <div>
-              <label className="form-label small">From</label>
+              <label className="form-label small mb-1">From</label>
               <input
                 type="date"
                 className="form-control form-control-sm"
@@ -229,7 +229,7 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
               />
             </div>
             <div>
-              <label className="form-label small">To</label>
+              <label className="form-label small mb-1">To</label>
               <input
                 type="date"
                 className="form-control form-control-sm"
@@ -239,20 +239,24 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
             </div>
           </div>
           
-          <button
-            onClick={exportEventLogs}
-            className="btn btn-primary btn-sm d-flex align-items-center me-2"
-          >
-            <Download size={16} className="me-1" />
-            Export All
-          </button>
-          <button
-            onClick={exportApprovedScannedReport}
-            className="btn btn-success btn-sm d-flex align-items-center"
-          >
-            <CheckCircle size={16} className="me-1" />
-            Export Completed
-          </button>
+          <div className="d-flex gap-2">
+            <button
+              onClick={exportEventLogs}
+              className="btn btn-outline-primary btn-sm d-flex align-items-center"
+              title="Export all outpass records (all statuses: pending, approved, rejected, utilized)"
+            >
+              <Download size={16} className="me-1" />
+              Export All
+            </button>
+            <button
+              onClick={exportApprovedScannedReport}
+              className="btn btn-success btn-sm d-flex align-items-center"
+              title="Export only scanned passes (students who returned to campus)"
+            >
+              <Download size={16} className="me-1" />
+              Scanned Passes
+            </button>
+          </div>
         </div>
       </div>
 

@@ -42,6 +42,18 @@ router.delete('/users/:userId', requireRole('HOD'), adminController.deleteUser);
 router.post('/users', requireRole('HOD'), adminController.createUser);
 
 /**
+ * POST /api/admin/bulk-add-users
+ * Bulk add students and mentors from Excel file (HOD only)
+ */
+router.post('/bulk-add-users', requireRole('HOD'), uploadExcel, adminController.bulkAddUsers);
+
+/**
+ * POST /api/admin/undo-bulk-imports (Development only)
+ * Undo recent bulk imported users while preserving existing users
+ */
+router.post('/undo-bulk-imports', requireRole('HOD'), adminController.undoBulkImports);
+
+/**
  * GET /api/admin/pending-actions
  * Get pending actions that require admin attention (HOD only)
  */
@@ -64,6 +76,12 @@ router.post('/upload-excel', requireRole('HOD'), uploadExcel, adminController.up
  * Get all student-mentor mappings
  */
 router.get('/student-mentor-mappings', requireRole('HOD'), adminController.getStudentMentorMappings);
+
+/**
+ * GET /api/admin/unmapped-students
+ * Get all students without mentor assignments
+ */
+router.get('/unmapped-students', requireRole('HOD'), adminController.getUnmappedStudents);
 
 /**
  * PUT /api/admin/student-mentor-mappings/:studentId
