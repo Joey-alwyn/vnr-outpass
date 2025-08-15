@@ -59,12 +59,17 @@ export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
           {/* Brand */}
           <div className="d-flex align-items-center">
             <Link to="/" className="navbar-brand d-flex align-items-center text-decoration-none">
-              <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
-                   style={{ width: '40px', height: '40px' }}>
-                <Shield size={20} />
+              <div
+                className="bg-primary text-white rounded-circle position-relative me-2 d-none d-sm-block"
+                style={{ width: 40, height: 40, lineHeight: 0 }}
+              >
+                <Shield
+                  size={20}
+                  className="position-absolute top-50 start-50 translate-middle d-block"
+                />
               </div>
-              <span className="fw-bold text-primary fs-4 d-none d-sm-block">VNR OutPass</span>
-              <span className="fw-bold text-primary fs-5 d-block d-sm-none">VNR</span>
+              <span className="fw-bold text-primary d-none d-sm-block" style={{ fontSize: '1.5rem' }}>VNR OutPass</span>
+              <span className="fw-bold text-primary d-block d-sm-none" style={{ fontSize: '1.3rem' }}>VNR OutPass</span>
             </Link>
           </div>
 
@@ -77,11 +82,10 @@ export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
                     <Link
                       key={path}
                       to={path}
-                      className={`nav-link px-3 py-2 rounded-pill text-decoration-none fw-medium transition-all ${
-                        isActiveRoute(path)
+                      className={`nav-link px-3 py-2 rounded-pill text-decoration-none fw-medium transition-all ${isActiveRoute(path)
                           ? 'bg-primary text-white'
                           : 'text-secondary hover:bg-light'
-                      }`}
+                        }`}
                     >
                       <Icon size={16} className="me-1" />
                       {label}
@@ -100,7 +104,7 @@ export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
                   <div className="bg-light rounded-circle p-2">
                     <User size={20} className="text-secondary" />
                   </div>
-                  <button 
+                  <button
                     className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
                     onClick={logout}
                   >
@@ -115,9 +119,10 @@ export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
           {/* Mobile Menu Button */}
           {user && (
             <button
-              className="btn btn-outline-secondary d-lg-none"
+              className="navbar-toggler d-lg-none"
               onClick={toggleMobileMenu}
               aria-label="Toggle navigation"
+              type="button"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -126,49 +131,51 @@ export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
 
         {/* Mobile Navigation */}
         {user && isMobileMenuOpen && (
-          <div className="d-lg-none border-top bg-white">
-            <div className="container-fluid px-3 py-3">
-              {/* User Info */}
-              <div className="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-                <div className="bg-light rounded-circle p-2">
-                  <User size={24} className="text-secondary" />
+          <div className="d-lg-none mobile-nav-overlay min-vh-100 d-flex">
+            <div className="container-fluid">
+              <div className="mobile-nav">
+                {/* User Info */}
+                <div className="mobile-nav-user">
+                  <div className="user-avatar">
+                    <User size={28} />
+                  </div>
+                  <div className="user-info">
+                    <div className="user-name">{user.name}</div>
+                    <div className="user-role">{user.role}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="fw-semibold text-dark">{user.name}</div>
-                  <div className="small text-muted">{user.role}</div>
-                </div>
-              </div>
 
-              {/* Navigation Links */}
-              <nav className="mb-3">
-                {getNavItems().map(({ path, label, icon: Icon }) => (
-                  <Link
-                    key={path}
-                    to={path}
-                    className={`d-flex align-items-center gap-3 py-2 px-3 rounded text-decoration-none mb-1 ${
-                      isActiveRoute(path)
-                        ? 'bg-primary text-white'
-                        : 'text-secondary'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                {/* Navigation Links */}
+                <nav className="mobile-nav-menu">
+                  {getNavItems().map(({ path, label, icon: Icon }) => (
+                    <Link
+                      key={path}
+                      to={path}
+                      className={`mobile-nav-link ${isActiveRoute(path) ? 'active' : ''}`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <div className="nav-link-content">
+                        <Icon size={24} className="nav-icon" />
+                        <span className="nav-text">{label}</span>
+                      </div>
+                    </Link>
+                  ))}
+
+                  {/* Logout Button */}
+                  <div
+                    className="mobile-nav-link logout-link"
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
                   >
-                    <Icon size={20} />
-                    <span className="fw-medium">{label}</span>
-                  </Link>
-                ))}
-              </nav>
-
-              {/* Logout Button */}
-              <button 
-                className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2"
-                onClick={() => {
-                  logout();
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <LogOut size={16} />
-                Logout
-              </button>
+                    <div className="nav-link-content">
+                      <LogOut size={24} className="nav-icon" />
+                      <span className="nav-text">Logout</span>
+                    </div>
+                  </div>
+                </nav>
+              </div>
             </div>
           </div>
         )}

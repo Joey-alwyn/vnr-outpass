@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { toast } from 'sonner';
+import '../styles/admin-dashboard.css';
+import '../styles/admin-mobile.css';
 
 // Import modular components
 import AdminNavigation from './admin/AdminNavigation';
@@ -275,7 +277,7 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="container-fluid py-4">
+    <div className="admin-dashboard container-fluid py-4">
       {/* Error Alert */}
       {error && (
         <div className="alert alert-danger alert-dismissible fade show mb-4" role="alert">

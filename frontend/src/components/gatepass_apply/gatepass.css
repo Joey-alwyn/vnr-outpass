@@ -6,11 +6,27 @@
   padding: 2rem 0;
 }
 
+/* Mobile optimizations */
+@media (max-width: 767.98px) {
+  .gatepass-form-container {
+    padding: 1rem 0;
+    min-height: calc(100vh - 64px); /* Account for mobile navbar height */
+  }
+}
+
 .gatepass-card {
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Mobile card adjustments */
+@media (max-width: 767.98px) {
+  .gatepass-card {
+    margin: 0.5rem;
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 5px 10px -5px rgba(0, 0, 0, 0.04);
+  }
 }
 
 .reason-textarea {
@@ -22,6 +38,73 @@
 .reason-textarea:focus {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(14, 165, 233, 0.15);
+}
+
+/* Mobile textarea adjustments */
+@media (max-width: 767.98px) {
+  .reason-textarea {
+    min-height: 120px;
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    background: #ffffff !important; /* Force white background */
+    color: #1f2937 !important; /* Ensure text is dark */
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .reason-textarea:focus {
+    transform: none; /* Disable transform on mobile for better stability */
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+    background: #ffffff !important; /* Keep white background on focus */
+    color: #1f2937 !important; /* Ensure text stays dark on focus */
+    border-color: #3b82f6 !important;
+    outline: none;
+  }
+
+  .reason-textarea::placeholder {
+    color: #9ca3af !important;
+    opacity: 1;
+    font-weight: 400;
+  }
+
+  /* All form controls mobile fixes */
+  .form-control,
+  .form-select {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    font-size: 16px !important;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .form-control:focus,
+  .form-select:focus {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+    outline: none;
+  }
+
+  .form-control::placeholder {
+    color: #9ca3af !important;
+    opacity: 1;
+    font-weight: 400;
+  }
+
+  /* Form labels */
+  .form-label {
+    color: #374151 !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
 }
 
 .submit-button {
@@ -42,6 +125,23 @@
 
 .submit-button:active {
   transform: translateY(0);
+}
+
+/* Mobile button improvements */
+@media (max-width: 767.98px) {
+  .submit-button {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 0.75rem 2rem;
+  }
+  
+  .submit-button:hover {
+    transform: none; /* Remove hover transform on mobile */
+  }
+  
+  .submit-button:active {
+    transform: scale(0.98);
+  }
 }
 
 .submit-button::before {

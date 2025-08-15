@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '../api';
+import { useRoleRedirect } from '../hooks/useRoleRedirect';
 import './ContactAdmin.css';
 
 const ContactAdmin: React.FC = () => {
@@ -12,6 +13,12 @@ const ContactAdmin: React.FC = () => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestSubmitted, setRequestSubmitted] = useState(false);
+
+  // Automatically redirect users with roles to their respective dashboards
+  useRoleRedirect({ 
+    redirectFromContactAdmin: true,
+    delay: 500 // Faster redirect for better UX
+  });
 
   const handleLogout = async () => {
     if (confirm('Are you sure you want to logout?')) {
