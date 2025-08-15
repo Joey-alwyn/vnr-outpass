@@ -60,6 +60,18 @@ router.post('/undo-bulk-imports', requireRole('HOD'), adminController.undoBulkIm
 router.get('/pending-actions', requireRole('HOD'), adminController.getPendingActions);
 
 /**
+ * POST /api/admin/bulk-assign-mentors
+ * Bulk assign mentors to students without mentors (HOD only)
+ */
+router.post('/bulk-assign-mentors', requireRole('HOD'), adminController.bulkAssignMentors);
+
+/**
+ * POST /api/admin/process-no-mentor-alerts
+ * Process students with "No mentor" assignments (HOD only)
+ */
+router.post('/process-no-mentor-alerts', requireRole('HOD'), adminController.processNoMentorAlerts);
+
+/**
  * GET /api/admin/stats
  * Get system statistics (HOD only)
  */
@@ -118,5 +130,23 @@ router.post('/download-approved-scanned-report', requireRole('HOD'), adminContro
  * Export event logs for outpass activities (HOD only)
  */
 router.post('/export-event-logs', requireRole('HOD'), adminController.exportEventLogs);
+
+/**
+ * POST /api/admin/role-request
+ * Create a role request notification (any authenticated user)
+ */
+router.post('/role-request', adminController.createRoleRequest);
+
+/**
+ * GET /api/admin/notifications
+ * Get all pending notifications (HOD only)
+ */
+router.get('/notifications', requireRole('HOD'), adminController.getNotifications);
+
+/**
+ * PUT /api/admin/notifications/:id/resolve
+ * Resolve a notification and optionally assign role (HOD only)
+ */
+router.put('/notifications/:id/resolve', requireRole('HOD'), adminController.resolveNotification);
 
 export default router;

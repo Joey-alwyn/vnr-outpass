@@ -161,7 +161,7 @@ export const getPendingActions = async (req: Request, res: Response) => {
 
     const actions: any[] = [];
 
-    // Find users who are no longer mentors but still have student mappings
+    // 1. Find users who are no longer mentors but still have student mappings
     const orphanedMappings = await prisma.studentMentor.findMany({
       include: {
         mentor: true,
@@ -175,6 +175,8 @@ export const getPendingActions = async (req: Request, res: Response) => {
         }
       }
     });
+
+    console.log(`🔍 Found ${orphanedMappings.length} orphaned mappings`);
 
     if (orphanedMappings.length > 0) {
       // Group by mentor
@@ -204,6 +206,171 @@ export const getPendingActions = async (req: Request, res: Response) => {
       });
     }
 
+    // 2. Find students assigned to mentors who have "No mentor" designation
+    // Check for students with mentorId pointing to users whose name contains "No mentor"
+    const noMentorMappings = await prisma.studentMentor.findMany({
+      include: {
+        mentor: true,
+        student: true,
+      },
+      where: {
+        mentor: {
+          name: {
+            contains: 'No mentor'
+          }
+        }
+      }
+    });
+
+    console.log(`🔍 Found ${noMentorMappings.length} students with 'No mentor' assignment`);
+
+    if (noMentorMappings.length > 0) {
+      actions.push({
+        type: 'no_mentor_alert',
+        description: `${noMentorMappings.length} student${noMentorMappings.length > 1 ? 's are' : ' is'} assigned to "No mentor". These students need proper mentor assignment to access outpass features.`,
+        userId: 'no-mentor-group',
+        userName: 'No Mentor Assignment',
+        affectedCount: noMentorMappings.length,
+        students: noMentorMappings.map(mapping => ({ 
+          id: mapping.student.id, 
+          name: mapping.student.name, 
+          email: mapping.student.email 
+        })),
+        priority: 'high'
+      });
+    }
+
+    // 3. Find students without mentor mapping
+    // Check for students who don't have entries in StudentMentor table
+    const recentUsersWithoutMapping = await prisma.user.findMany({
+      where: {
+        AND: [
+          {
+            createdAt: {
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
+            }
+          },
+          {
+            role: 'STUDENT' // Only students
+          },
+          {
+            mentors: {
+              none: {} // No mentor mapping exists (student side of relation)
+            }
+          }
+        ]
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 20 // Limit to recent 20
+    });
+
+    console.log(`🔍 Found ${recentUsersWithoutMapping.length} recent students without mentor mapping`);
+    
+    // Debug: Let's also check all students in last 7 days to see if they exist
+    const allRecentStudents = await prisma.user.findMany({
+      where: {
+        AND: [
+          {
+            createdAt: {
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            }
+          },
+          { role: 'STUDENT' }
+        ]
+      }
+    });
+    console.log(`📊 Total recent students (last 7 days): ${allRecentStudents.length}`);
+    
+    // Debug: Check how many students have mentors
+    const studentsWithMentors = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT',
+        mentors: {
+          some: {}
+        }
+      }
+    });
+    console.log(`👥 Students with mentors: ${studentsWithMentors.length}`);
+    
+    // Debug: Check all students without mentors (not just recent)
+    const allStudentsWithoutMentors = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT',
+        mentors: {
+          none: {}
+        }
+      }
+    });
+    console.log(`❌ All students without mentors: ${allStudentsWithoutMentors.length}`);
+
+    if (recentUsersWithoutMapping.length > 0) {
+      actions.push({
+        type: 'new_user_role_requests',
+        description: `${recentUsersWithoutMapping.length} recently created student${recentUsersWithoutMapping.length > 1 ? 's' : ''} need${recentUsersWithoutMapping.length > 1 ? '' : 's'} mentor assignment. Students cannot apply for outpasses without mentor mapping.`,
+        userId: 'new-users-group',
+        userName: 'New Student Registrations',
+        affectedCount: recentUsersWithoutMapping.length,
+        users: recentUsersWithoutMapping.map(user => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt
+        })),
+        priority: 'medium'
+      });
+    }
+
+    // 4. Check for pending role request notifications
+    // Note: This will cause compile errors until Prisma is regenerated, but the logic is correct
+    try {
+      const roleRequests = await (prisma as any).notification.findMany({
+        where: {
+          type: 'ROLE_REQUEST',
+          status: 'PENDING'
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      console.log(`📬 Found ${roleRequests.length} pending role requests`);
+
+      if (roleRequests.length > 0) {
+        roleRequests.forEach((request: any) => {
+          const data = request.data ? JSON.parse(request.data) : {};
+          actions.push({
+            type: 'role_request',
+            description: `${request.user.name} has requested role assignment to ${data.requestedRole || 'Unknown Role'}`,
+            userId: request.user.id,
+            userName: request.user.name,
+            affectedCount: 1,
+            notificationId: request.id,
+            requestedRole: data.requestedRole,
+            reason: data.reason,
+            currentRole: request.user.role,
+            userEmail: request.user.email,
+            createdAt: request.createdAt,
+            priority: 'high'
+          });
+        });
+      }
+    } catch (error) {
+      console.log('⚠️ Notification table not ready yet (need to run migration)');
+    }
+
     console.log(`✅ Found ${actions.length} pending actions`);
 
     res.json({
@@ -213,6 +380,177 @@ export const getPendingActions = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('❌ Error fetching pending actions:', error);
     res.status(500).json({ error: 'Failed to fetch pending actions' });
+  }
+};
+
+/**
+ * POST /api/admin/bulk-assign-mentors
+ * Bulk assign mentors to students without mentors (HOD only)
+ */
+export const bulkAssignMentors = async (req: Request, res: Response) => {
+  try {
+    console.log('🔍 Processing bulk mentor assignment...');
+    const { studentIds, mentorId } = req.body;
+
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({ error: 'Student IDs array is required' });
+    }
+
+    if (!mentorId) {
+      return res.status(400).json({ error: 'Mentor ID is required' });
+    }
+
+    // Verify mentor exists and has MENTOR role
+    const mentor = await prisma.user.findUnique({
+      where: { id: mentorId },
+    });
+
+    if (!mentor || mentor.role !== 'MENTOR') {
+      return res.status(400).json({ error: 'Invalid mentor ID or user is not a mentor' });
+    }
+
+    // Verify all students exist and have STUDENT role
+    const students = await prisma.user.findMany({
+      where: {
+        id: { in: studentIds },
+        role: 'STUDENT'
+      }
+    });
+
+    if (students.length !== studentIds.length) {
+      return res.status(400).json({ error: 'Some student IDs are invalid or users are not students' });
+    }
+
+    // Create student-mentor mappings
+    const assignments = await Promise.all(
+      studentIds.map(async (studentId: string) => {
+        return prisma.studentMentor.upsert({
+          where: { studentId },
+          update: { mentorId },
+          create: { studentId, mentorId }
+        });
+      })
+    );
+
+    console.log(`✅ Assigned ${assignments.length} students to mentor ${mentor.name}`);
+
+    res.json({
+      success: true,
+      message: `Successfully assigned ${assignments.length} students to ${mentor.name}`,
+      assignments: assignments.length,
+      mentorName: mentor.name
+    });
+  } catch (error) {
+    console.error('❌ Error in bulk mentor assignment:', error);
+    res.status(500).json({ error: 'Failed to assign mentors' });
+  }
+};
+
+/**
+ * POST /api/admin/process-no-mentor-alerts
+ * Process students with "No mentor" assignments (HOD only)
+ */
+export const processNoMentorAlerts = async (req: Request, res: Response) => {
+  try {
+    console.log('🔍 Processing "No mentor" alerts...');
+    const { action, mentorId, studentIds } = req.body;
+
+    if (!action || !['reassign', 'remove'].includes(action)) {
+      return res.status(400).json({ error: 'Action must be either "reassign" or "remove"' });
+    }
+
+    // Find all "No mentor" mappings if no specific students provided
+    let targetMappings;
+    if (studentIds && studentIds.length > 0) {
+      targetMappings = await prisma.studentMentor.findMany({
+        where: {
+          studentId: { in: studentIds },
+          mentor: {
+            name: { contains: 'No mentor' }
+          }
+        },
+        include: {
+          student: true,
+          mentor: true
+        }
+      });
+    } else {
+      targetMappings = await prisma.studentMentor.findMany({
+        where: {
+          mentor: {
+            name: { contains: 'No mentor' }
+          }
+        },
+        include: {
+          student: true,
+          mentor: true
+        }
+      });
+    }
+
+    if (targetMappings.length === 0) {
+      return res.status(404).json({ error: 'No "No mentor" assignments found' });
+    }
+
+    let result;
+    if (action === 'reassign') {
+      if (!mentorId) {
+        return res.status(400).json({ error: 'Mentor ID is required for reassignment' });
+      }
+
+      // Verify the new mentor
+      const newMentor = await prisma.user.findUnique({
+        where: { id: mentorId }
+      });
+
+      if (!newMentor || newMentor.role !== 'MENTOR') {
+        return res.status(400).json({ error: 'Invalid mentor ID or user is not a mentor' });
+      }
+
+      // Update all mappings to the new mentor
+      result = await Promise.all(
+        targetMappings.map(async (mapping) => {
+          return prisma.studentMentor.update({
+            where: { id: mapping.id },
+            data: { mentorId }
+          });
+        })
+      );
+
+      console.log(`✅ Reassigned ${result.length} students from "No mentor" to ${newMentor.name}`);
+
+      res.json({
+        success: true,
+        action: 'reassigned',
+        message: `Successfully reassigned ${result.length} students to ${newMentor.name}`,
+        count: result.length,
+        mentorName: newMentor.name
+      });
+    } else if (action === 'remove') {
+      // Delete the "No mentor" mappings
+      const studentIdsToRemove = targetMappings.map(m => m.studentId);
+      
+      result = await prisma.studentMentor.deleteMany({
+        where: {
+          studentId: { in: studentIdsToRemove },
+          mentor: {
+            name: { contains: 'No mentor' }
+          }
+        }
+      });
+
+      console.log(`✅ Removed ${result.count} "No mentor" assignments`);
+
+      res.json({
+        success: true,
+        action: 'removed',
+        message: `Successfully removed ${result.count} "No mentor" assignments`,
+        count: result.count
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error processing "No mentor" alerts:', error);
+    res.status(500).json({ error: 'Failed to process "No mentor" alerts' });
   }
 };
 
@@ -2147,5 +2485,204 @@ export const getUnmappedStudents = async (req: Request, res: Response) => {
       error: 'Failed to fetch unmapped students',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+};
+
+/**
+ * POST /api/admin/role-request
+ * Create a role request notification (any user can request)
+ */
+export const createRoleRequest = async (req: Request, res: Response) => {
+  try {
+    const { requestedRole, reason } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    if (!requestedRole || !['STUDENT', 'MENTOR', 'HOD', 'SECURITY'].includes(requestedRole)) {
+      return res.status(400).json({ error: 'Valid requested role is required' });
+    }
+
+    // Check if user already has a pending role request
+    const existingRequest = await prisma.notification.findFirst({
+      where: {
+        userId,
+        type: 'ROLE_REQUEST',
+        status: 'PENDING'
+      }
+    });
+
+    if (existingRequest) {
+      return res.status(409).json({ error: 'You already have a pending role request' });
+    }
+
+    // Get user details
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true, role: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Create notification
+    const notification = await prisma.notification.create({
+      data: {
+        type: 'ROLE_REQUEST',
+        title: `Role Assignment Request from ${user.name}`,
+        message: `${user.name} (${user.email}) has requested to be assigned the role: ${requestedRole}${reason ? `. Reason: ${reason}` : ''}`,
+        data: JSON.stringify({
+          requestedRole,
+          reason: reason || '',
+          currentRole: user.role,
+          userEmail: user.email,
+          userName: user.name
+        }),
+        userId
+      }
+    });
+
+    console.log(`✅ Role request created:`, notification);
+
+    res.status(201).json({
+      message: 'Role request submitted successfully',
+      notification: {
+        id: notification.id,
+        status: notification.status,
+        createdAt: notification.createdAt
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating role request:', error);
+    res.status(500).json({ error: 'Failed to create role request' });
+  }
+};
+
+/**
+ * GET /api/admin/notifications
+ * Get all pending notifications (HOD only)
+ */
+export const getNotifications = async (req: Request, res: Response) => {
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: {
+        status: 'PENDING'
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    console.log(`📬 Found ${notifications.length} pending notifications`);
+
+    res.json({
+      notifications,
+      count: notifications.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching notifications:', error);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+};
+
+/**
+ * PUT /api/admin/notifications/:id/resolve
+ * Resolve a notification and optionally assign role (HOD only)
+ */
+export const resolveNotification = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { action, assignedRole } = req.body; // action: 'approve' | 'reject'
+    const adminId = req.user?.id;
+
+    if (!adminId) {
+      return res.status(401).json({ error: 'Admin not authenticated' });
+    }
+
+    if (!action || !['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ error: 'Valid action (approve/reject) is required' });
+    }
+
+    // Get notification
+    const notification = await prisma.notification.findUnique({
+      where: { id },
+      include: {
+        user: true
+      }
+    });
+
+    if (!notification) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+
+    if (notification.status !== 'PENDING') {
+      return res.status(400).json({ error: 'Notification already resolved' });
+    }
+
+    let result;
+
+    if (action === 'approve' && notification.type === 'ROLE_REQUEST') {
+      if (!assignedRole || !['STUDENT', 'MENTOR', 'HOD', 'SECURITY'].includes(assignedRole)) {
+        return res.status(400).json({ error: 'Valid assigned role is required for approval' });
+      }
+
+      // Update user role and resolve notification in a transaction
+      result = await prisma.$transaction(async (tx) => {
+        // Update user role
+        const updatedUser = await tx.user.update({
+          where: { id: notification.userId },
+          data: { role: assignedRole as any }
+        });
+
+        // Resolve notification
+        const resolvedNotification = await tx.notification.update({
+          where: { id },
+          data: {
+            status: 'RESOLVED',
+            resolvedAt: new Date(),
+            resolvedById: adminId
+          }
+        });
+
+        return { updatedUser, resolvedNotification };
+      });
+
+      console.log(`✅ Role assigned: ${notification.user.email} -> ${assignedRole}`);
+
+    } else {
+      // Just mark as resolved/dismissed
+      result = await prisma.notification.update({
+        where: { id },
+        data: {
+          status: action === 'approve' ? 'RESOLVED' : 'DISMISSED',
+          resolvedAt: new Date(),
+          resolvedById: adminId
+        }
+      });
+    }
+
+    res.json({
+      message: `Notification ${action}d successfully`,
+      result
+    });
+
+  } catch (error) {
+    console.error('❌ Error resolving notification:', error);
+    res.status(500).json({ error: 'Failed to resolve notification' });
   }
 };

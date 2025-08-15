@@ -1,0 +1,308 @@
+/* Mobile UI Enhancements for VNR OutPass */
+
+/* Global mobile-first improvements */
+@media (max-width: 767.98px) {
+  /* Container improvements */
+  .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Card improvements */
+  .card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* Button improvements */
+  .btn {
+    min-height: 44px; /* Better touch targets */
+    font-size: 0.9rem;
+  }
+  
+  .btn-sm {
+    min-height: 36px;
+    font-size: 0.8rem;
+  }
+  
+  .btn-group-mobile .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Form improvements */
+  .form-control,
+  .form-select {
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Table improvements */
+  .table-responsive {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+  }
+  
+  .table {
+    font-size: 0.875rem;
+    margin-bottom: 0;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.5rem;
+    vertical-align: middle;
+  }
+  
+  /* Modal improvements */
+  .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .modal-content {
+    border-radius: 12px;
+  }
+  
+  .modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  .modal-footer {
+    padding: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Alert improvements */
+  .alert {
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  /* Badge improvements */
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+  }
+  
+  /* Navigation pill improvements for admin */
+  .nav-pills .nav-link {
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    margin: 0.125rem;
+  }
+  
+  /* Dropdown improvements */
+  .dropdown-menu {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: none;
+  }
+  
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Pagination improvements */
+  .pagination {
+    margin-bottom: 0;
+  }
+  
+  .page-link {
+    border-radius: 6px;
+    margin: 0 2px;
+    border: 1px solid #dee2e6;
+  }
+}
+
+@media (max-width: 575.98px) {
+  /* Extra small screen improvements */
+  .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .card-body {
+    padding: 0.75rem;
+  }
+  
+  /* Typography adjustments */
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
+  h4 { font-size: 1rem; }
+  h5 { font-size: 0.9rem; }
+  h6 { font-size: 0.8rem; }
+  
+  /* Stack flex items on very small screens */
+  .d-flex:not(.no-stack) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .d-flex.gap-2:not(.no-stack) {
+    gap: 0.5rem;
+  }
+  
+  .d-flex.gap-3:not(.no-stack) {
+    gap: 0.75rem;
+  }
+  
+  /* Admin panel specific improvements */
+  .admin-nav-mobile {
+    padding: 0.5rem;
+  }
+  
+  .admin-nav-mobile .btn {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    min-height: 60px;
+  }
+  
+  /* Take actions mobile specific */
+  .take-actions .card-body {
+    padding: 0.75rem;
+  }
+  
+  .take-actions .badge {
+    font-size: 0.7rem;
+  }
+  
+  .take-actions .btn-sm {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Landscape phone improvements */
+@media (max-width: 767.98px) and (orientation: landscape) {
+  .navbar {
+    padding: 0.5rem 1rem;
+  }
+  
+  .modal-dialog {
+    max-width: 90vw;
+    margin: 0.5rem auto;
+  }
+  
+  .take-actions {
+    padding: 0.5rem;
+  }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .btn {
+    min-height: 48px;
+  }
+  
+  .btn-sm {
+    min-height: 40px;
+  }
+  
+  /* Remove hover effects that don't work on touch */
+  .btn:hover,
+  .nav-link:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Improve focus states for keyboard navigation */
+  .btn:focus,
+  .form-control:focus,
+  .nav-link:focus {
+    outline: 2px solid #0ea5e9;
+    outline-offset: 2px;
+  }
+}
+
+/* Dark mode improvements for mobile */
+@media (prefers-color-scheme: dark) and (max-width: 767.98px) {
+  .card {
+    background-color: #1e293b;
+    border-color: #334155;
+  }
+  
+  .modal-content {
+    background-color: #1e293b;
+    color: white;
+  }
+  
+  .table {
+    color: white;
+  }
+  
+  .form-control,
+  .form-select {
+    background-color: #334155;
+    border-color: #475569;
+    color: white;
+  }
+}
+
+/* Accessibility improvements for mobile */
+@media (max-width: 767.98px) {
+  /* High contrast mode */
+  @media (prefers-contrast: high) {
+    .btn {
+      border-width: 2px;
+    }
+    
+    .card {
+      border-width: 2px;
+    }
+    
+    .alert {
+      border-width: 2px;
+    }
+  }
+  
+  /* Reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .nav-link,
+    .card {
+      transition: none;
+    }
+    
+    .spinner-border {
+      animation: none;
+    }
+  }
+}
+
+/* Print styles for mobile */
+@media print {
+  .btn,
+  .navbar,
+  .modal,
+  .alert-dismissible .btn-close {
+    display: none !important;
+  }
+  
+  .card {
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+  
+  .container-fluid {
+    padding: 0;
+  }
+}

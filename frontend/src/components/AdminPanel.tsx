@@ -7,7 +7,7 @@ import AdminNavigation from './admin/AdminNavigation';
 import DashboardOverview from './admin/DashboardOverview';
 import UserManagement from './admin/UserManagement';
 import StudentMentorMapping from './admin/StudentMentorMapping';
-// import QuickActions from './admin/QuickActions'; // Kept for future use
+import TakeActions from './admin/TakeActions';
 import OutpassReports from './admin/OutpassReports';
 
 // Types
@@ -327,12 +327,13 @@ const AdminPanel = () => {
                 />
               )}
 
-              {/* Quick Actions Tab - Commented out for future use */}
-              {/* {activeTab === 'actions' && (
-                <QuickActions 
+              {/* Take Actions Tab */}
+              {activeTab === 'actions' && (
+                <TakeActions 
                   onNavigateToMapping={() => setActiveTab('mapping')}
+                  onNavigateToUsers={() => setActiveTab('users')}
                 />
-              )} */}
+              )}
 
               {/* Reports Tab */}
               {activeTab === 'reports' && (

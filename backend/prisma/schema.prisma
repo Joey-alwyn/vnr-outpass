@@ -35,6 +35,10 @@ model User {
   passesToReview  GatePass[]       @relation("MentorGatePasses")
   students        StudentMentor[]  @relation("MentorMap")
   mentors         StudentMentor[]  @relation("StudentMap")
+  
+  // Notification relationships
+  notifications   Notification[]   @relation("UserNotifications")
+  resolvedNotifications Notification[] @relation("ResolvedNotifications")
 }
 
 model GatePass {
@@ -66,4 +70,36 @@ model StudentMentor {
   mentorId   String
 
   @@unique([studentId])
+}
+
+enum NotificationType {
+  ROLE_REQUEST
+  MENTOR_ASSIGNMENT
+  ROLE_CHANGE
+}
+
+enum NotificationStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+model Notification {
+  id          String             @id @default(uuid())
+  type        NotificationType
+  status      NotificationStatus @default(PENDING)
+  title       String
+  message     String
+  data        String?           // JSON data for additional context
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  resolvedAt  DateTime?
+
+  // User who created the notification (requester)
+  user        User              @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  // Admin who resolved the notification
+  resolvedBy  User?             @relation("ResolvedNotifications", fields: [resolvedById], references: [id])
+  resolvedById String?
 }
