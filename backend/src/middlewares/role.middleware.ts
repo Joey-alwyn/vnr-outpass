@@ -72,8 +72,29 @@ export async function verifyTokenWithAuthServer(token: string): Promise<{ valid:
         console.log('✅ Combined user data with role:', combinedUser);
         return { valid: true, user: combinedUser };
       } else {
-        console.log('⚠️ User authenticated but not found in local database');
-        return { valid: true, user: authUser };
+        console.log('⚠️ User authenticated but not found in local database - creating new user');
+        
+        // Auto-create the user in the local database
+        const newUser = await prisma.user.create({
+          data: {
+            email: authUser.email.toLowerCase(),
+            name: authUser.name,
+            // Don't set role - it will be null by default since it's optional
+          },
+        });
+
+        console.log('✅ Created new user in local database:', newUser);
+
+        const combinedUser = {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          role: newUser.role,
+          picture: authUser.picture,
+          family_name: authUser.family_name,
+        };
+        
+        return { valid: true, user: combinedUser };
       }
     }
 

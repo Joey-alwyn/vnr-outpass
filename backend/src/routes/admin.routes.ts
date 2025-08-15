@@ -1,9 +1,58 @@
 import { Router } from 'express';
-import { requireRole } from '../middlewares/role.middleware';
+import { requireRole, verifyTokenWithAuthServer } from '../middlewares/role.middleware';
 import { uploadExcel } from '../middlewares/upload.middleware';
 import * as adminController from '../controllers/admin.controller';
+import { Request, Response, NextFunction } from 'express';
 
 const router = Router();
+
+/**
+ * Helper function to extract userToken from cookies
+ */
+function extractUserToken(cookieHeader: string | undefined): string | null {
+  if (!cookieHeader) {
+    return null;
+  }
+  
+  const cookies = cookieHeader.split(';').map(cookie => cookie.trim());
+  const userTokenCookie = cookies.find(cookie => cookie.startsWith('userToken='));
+  
+  if (userTokenCookie) {
+    return userTokenCookie.split('=')[1];
+  }
+  
+  return null;
+}
+
+/**
+ * Middleware to require authentication (but not a specific role)
+ */
+function requireAuth(req: Request, res: Response, next: NextFunction): void {
+  const cookieHeader = req.headers.cookie;
+  const token = extractUserToken(cookieHeader);
+  
+  if (!token) {
+    console.log('❌ No token found, rejecting request');
+    res.status(401).json({ error: 'User not authenticated' });
+    return;
+  }
+
+  verifyTokenWithAuthServer(token)
+    .then(result => {
+      if (!result.valid || !result.user) {
+        console.log('❌ Invalid token or no user data');
+        res.status(401).json({ error: 'User not authenticated' });
+        return;
+      }
+
+      (req as any).user = result.user;
+      next();
+    })
+    .catch(error => {
+      console.error('❌ Auth server verification failed:', error.message);
+      res.status(401).json({ error: 'User not authenticated' });
+    });
+}
 
 /**
  * GET /api/admin/users
@@ -135,7 +184,7 @@ router.post('/export-event-logs', requireRole('HOD'), adminController.exportEven
  * POST /api/admin/role-request
  * Create a role request notification (any authenticated user)
  */
-router.post('/role-request', adminController.createRoleRequest);
+router.post('/role-request', requireAuth, adminController.createRoleRequest);
 
 /**
  * GET /api/admin/notifications
