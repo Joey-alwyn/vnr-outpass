@@ -15,16 +15,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../../api';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../ui/alert-dialog";
 import Pagination from '../ui/Pagination';
 import AddUserModal from './AddUserModal';
 import EditUserModal from './EditUserModal';
@@ -481,232 +471,236 @@ const UserManagement: React.FC<UserManagementProps> = ({
         )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="modal-xl">
-          <AlertDialogHeader>
-            <div className="d-flex align-items-center">
-              <div className="rounded-circle d-flex align-items-center justify-content-center me-3" 
-                   style={{ 
-                     width: '48px', 
-                     height: '48px', 
-                     background: 'linear-gradient(135deg, #dc3545 0%, #b02a37 100%)',
-                     boxShadow: '0 4px 12px rgba(220, 53, 69, 0.3)'
-                   }}>
-                <Trash2 className="text-white" style={{width: '24px', height: '24px'}} />
-              </div>
-              <div>
-                <AlertDialogTitle>Delete User Account</AlertDialogTitle>
-                <p className="text-muted mb-0 small fw-medium">This action is permanent and cannot be undone</p>
-              </div>
-            </div>
-          </AlertDialogHeader>
-          
-          <AlertDialogDescription>
-            {loadingDependencies ? (
-              <div className="text-center py-5">
-                <div className="spinner-border text-primary mb-3" role="status" style={{width: '3rem', height: '3rem'}}>
-                  <span className="visually-hidden">Loading...</span>
+      {/* Delete Confirmation Modal */}
+      <div className={`modal fade ${deleteDialogOpen ? 'show' : ''}`} 
+           style={{ display: deleteDialogOpen ? 'block' : 'none' }}
+           tabIndex={-1}>
+        <div className="modal-dialog modal-xl">
+          <div className="modal-content">
+            <div className="modal-header">
+              <div className="d-flex align-items-center">
+                <div className="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                     style={{ 
+                       width: '48px', 
+                       height: '48px', 
+                       background: 'linear-gradient(135deg, #dc3545 0%, #b02a37 100%)',
+                       boxShadow: '0 4px 12px rgba(220, 53, 69, 0.3)'
+                     }}>
+                  <Trash2 className="text-white" style={{width: '24px', height: '24px'}} />
                 </div>
-                <h6 className="fw-medium text-muted">Analyzing user dependencies...</h6>
-                <p className="text-muted small mb-0">Please wait while we check for related data</p>
+                <div>
+                  <h5 className="modal-title">Delete User Account</h5>
+                  <p className="text-muted mb-0 small fw-medium">This action is permanent and cannot be undone</p>
+                </div>
               </div>
-            ) : userToDelete ? (
-              <>
-                {/* User Info Card */}
-                <div className="card border-0 mb-4" style={{ backgroundColor: '#f8f9fa', borderRadius: '12px' }}>
-                  <div className="card-body p-4">
-                    <div className="d-flex align-items-center">
-                      <div className="rounded-circle d-flex align-items-center justify-content-center me-3" 
-                           style={{
-                             width: '48px', 
-                             height: '48px', 
-                             background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)'
-                           }}>
-                        <span className="text-white fw-bold fs-5">
-                          {userToDelete.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex-grow-1">
-                        <h6 className="fw-bold mb-1 fs-5">{userToDelete.name}</h6>
-                        <p className="text-muted mb-2 small">{userToDelete.email}</p>
-                        <span className={`badge ${getRoleBootstrapColor(userToDelete.role)} fs-6 px-3 py-2`}>
-                          {getRoleIcon(userToDelete.role)}
-                          <span className="ms-2">{userToDelete.role}</span>
-                        </span>
+              <button type="button" className="btn-close" onClick={() => setDeleteDialogOpen(false)}></button>
+            </div>
+            
+            <div className="modal-body">
+              {loadingDependencies ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary mb-3" role="status" style={{width: '3rem', height: '3rem'}}>
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <h6 className="fw-medium text-muted">Analyzing user dependencies...</h6>
+                  <p className="text-muted small mb-0">Please wait while we check for related data</p>
+                </div>
+              ) : userToDelete ? (
+                <>
+                  {/* User Info Card */}
+                  <div className="card border-0 mb-4" style={{ backgroundColor: '#f8f9fa', borderRadius: '12px' }}>
+                    <div className="card-body p-4">
+                      <div className="d-flex align-items-center">
+                        <div className="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                             style={{
+                               width: '48px', 
+                               height: '48px', 
+                               background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)'
+                             }}>
+                          <span className="text-white fw-bold fs-5">
+                            {userToDelete.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-grow-1">
+                          <h6 className="fw-bold mb-1 fs-5">{userToDelete.name}</h6>
+                          <p className="text-muted mb-2 small">{userToDelete.email}</p>
+                          <span className={`badge ${getRoleBootstrapColor(userToDelete.role)} fs-6 px-3 py-2`}>
+                            {getRoleIcon(userToDelete.role)}
+                            <span className="ms-2">{userToDelete.role}</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                {userDependencies && userDependencies.summary.total > 0 ? (
-                  <>
-                    {/* Warning Alert */}
-                    <div className="alert border-0 mb-4" 
+                  
+                  {userDependencies && userDependencies.summary.total > 0 ? (
+                    <>
+                      {/* Warning Alert */}
+                      <div className="alert border-0 mb-4" 
+                           style={{ 
+                             backgroundColor: '#fff3cd', 
+                             borderLeft: '4px solid #ffc107',
+                             borderRadius: '12px'
+                           }}>
+                        <div className="d-flex align-items-center">
+                          <AlertTriangle className="text-warning me-3" style={{width: '24px', height: '24px'}} />
+                          <div>
+                            <h6 className="text-warning fw-bold mb-1">Dependency Warning</h6>
+                            <p className="text-warning mb-0 small">
+                              This user has <strong>{userDependencies.summary.total} active dependencies</strong> that will be affected
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Dependencies List */}
+                      <div className="mb-4">
+                        <h6 className="fw-bold mb-3 text-dark">Related Data to be Deleted:</h6>
+                        <div className="row g-3">
+                          {userDependencies.summary.gatePasses > 0 && (
+                            <div className="col-md-6">
+                              <div className="card border-0 h-100" style={{ backgroundColor: '#e3f2fd', borderRadius: '12px' }}>
+                                <div className="card-body p-3">
+                                  <div className="d-flex align-items-center">
+                                    <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" 
+                                         style={{width: '32px', height: '32px', fontSize: '14px'}}>
+                                      🎫
+                                    </div>
+                                    <div>
+                                      <h6 className="fw-bold text-primary mb-0">{userDependencies.summary.gatePasses}</h6>
+                                      <small className="text-primary">Outpass Application{userDependencies.summary.gatePasses > 1 ? 's' : ''}</small>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {userDependencies.summary.passesToReview > 0 && (
+                            <div className="col-md-6">
+                              <div className="card border-0 h-100" style={{ backgroundColor: '#e8f5e8', borderRadius: '12px' }}>
+                                <div className="card-body p-3">
+                                  <div className="d-flex align-items-center">
+                                    <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" 
+                                         style={{width: '32px', height: '32px', fontSize: '14px'}}>
+                                      👨‍🏫
+                                    </div>
+                                    <div>
+                                      <h6 className="fw-bold text-success mb-0">{userDependencies.summary.passesToReview}</h6>
+                                      <small className="text-success">Pending Review{userDependencies.summary.passesToReview > 1 ? 's' : ''}</small>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {userDependencies.summary.studentMappings > 0 && (
+                            <div className="col-md-6">
+                              <div className="card border-0 h-100" style={{ backgroundColor: '#f3e5f5', borderRadius: '12px' }}>
+                                <div className="card-body p-3">
+                                  <div className="d-flex align-items-center">
+                                    <div className="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3" 
+                                         style={{width: '32px', height: '32px', fontSize: '14px'}}>
+                                      👨‍🎓
+                                    </div>
+                                    <div>
+                                      <h6 className="fw-bold text-info mb-0">{userDependencies.summary.studentMappings}</h6>
+                                      <small className="text-info">Student Mapping{userDependencies.summary.studentMappings > 1 ? 's' : ''}</small>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {userDependencies.summary.mentorMappings > 0 && (
+                            <div className="col-md-6">
+                              <div className="card border-0 h-100" style={{ backgroundColor: '#fff3e0', borderRadius: '12px' }}>
+                                <div className="card-body p-3">
+                                  <div className="d-flex align-items-center">
+                                    <div className="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" 
+                                         style={{width: '32px', height: '32px', fontSize: '14px'}}>
+                                      👨‍🏫
+                                    </div>
+                                    <div>
+                                      <h6 className="fw-bold text-warning mb-0">{userDependencies.summary.mentorMappings}</h6>
+                                      <small className="text-warning">Mentor Mapping{userDependencies.summary.mentorMappings > 1 ? 's' : ''}</small>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Critical Warning */}
+                      <div className="alert border-0 mb-0" 
+                           style={{ 
+                             background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+                             border: '2px solid #f87171',
+                             borderRadius: '12px'
+                           }}>
+                        <div className="d-flex align-items-start">
+                          <div className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center me-3 flex-shrink-0" 
+                               style={{width: '32px', height: '32px', fontSize: '16px'}}>
+                            ⚠️
+                          </div>
+                          <div>
+                            <h6 className="text-danger fw-bold mb-2">CRITICAL ACTION REQUIRED</h6>
+                            <ul className="text-danger mb-2 fw-medium lh-lg">
+                              <li>Permanently delete user: <strong>{userToDelete.name}</strong></li>
+                              <li>Delete <strong>{userDependencies.summary.total}</strong> related dependencies</li>
+                              <li><strong>This action CANNOT be undone</strong></li>
+                            </ul>
+                            <p className="text-danger small mb-0 fst-italic">
+                              Please ensure you have backed up any important data before proceeding.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="alert border-0" 
                          style={{ 
-                           backgroundColor: '#fff3cd', 
-                           borderLeft: '4px solid #ffc107',
+                           background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+                           borderLeft: '4px solid #10b981',
                            borderRadius: '12px'
                          }}>
                       <div className="d-flex align-items-center">
-                        <AlertTriangle className="text-warning me-3" style={{width: '24px', height: '24px'}} />
-                        <div>
-                          <h6 className="text-warning fw-bold mb-1">Dependency Warning</h6>
-                          <p className="text-warning mb-0 small">
-                            This user has <strong>{userDependencies.summary.total} active dependencies</strong> that will be affected
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Dependencies List */}
-                    <div className="mb-4">
-                      <h6 className="fw-bold mb-3 text-dark">Related Data to be Deleted:</h6>
-                      <div className="row g-3">
-                        {userDependencies.summary.gatePasses > 0 && (
-                          <div className="col-md-6">
-                            <div className="card border-0 h-100" style={{ backgroundColor: '#e3f2fd', borderRadius: '12px' }}>
-                              <div className="card-body p-3">
-                                <div className="d-flex align-items-center">
-                                  <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" 
-                                       style={{width: '32px', height: '32px', fontSize: '14px'}}>
-                                    🎫
-                                  </div>
-                                  <div>
-                                    <h6 className="fw-bold text-primary mb-0">{userDependencies.summary.gatePasses}</h6>
-                                    <small className="text-primary">Outpass Application{userDependencies.summary.gatePasses > 1 ? 's' : ''}</small>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {userDependencies.summary.passesToReview > 0 && (
-                          <div className="col-md-6">
-                            <div className="card border-0 h-100" style={{ backgroundColor: '#e8f5e8', borderRadius: '12px' }}>
-                              <div className="card-body p-3">
-                                <div className="d-flex align-items-center">
-                                  <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" 
-                                       style={{width: '32px', height: '32px', fontSize: '14px'}}>
-                                    👨‍🏫
-                                  </div>
-                                  <div>
-                                    <h6 className="fw-bold text-success mb-0">{userDependencies.summary.passesToReview}</h6>
-                                    <small className="text-success">Pending Review{userDependencies.summary.passesToReview > 1 ? 's' : ''}</small>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {userDependencies.summary.studentMappings > 0 && (
-                          <div className="col-md-6">
-                            <div className="card border-0 h-100" style={{ backgroundColor: '#f3e5f5', borderRadius: '12px' }}>
-                              <div className="card-body p-3">
-                                <div className="d-flex align-items-center">
-                                  <div className="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3" 
-                                       style={{width: '32px', height: '32px', fontSize: '14px'}}>
-                                    👨‍🎓
-                                  </div>
-                                  <div>
-                                    <h6 className="fw-bold text-info mb-0">{userDependencies.summary.studentMappings}</h6>
-                                    <small className="text-info">Student Mapping{userDependencies.summary.studentMappings > 1 ? 's' : ''}</small>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {userDependencies.summary.mentorMappings > 0 && (
-                          <div className="col-md-6">
-                            <div className="card border-0 h-100" style={{ backgroundColor: '#fff3e0', borderRadius: '12px' }}>
-                              <div className="card-body p-3">
-                                <div className="d-flex align-items-center">
-                                  <div className="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" 
-                                       style={{width: '32px', height: '32px', fontSize: '14px'}}>
-                                    👨‍🏫
-                                  </div>
-                                  <div>
-                                    <h6 className="fw-bold text-warning mb-0">{userDependencies.summary.mentorMappings}</h6>
-                                    <small className="text-warning">Mentor Mapping{userDependencies.summary.mentorMappings > 1 ? 's' : ''}</small>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Critical Warning */}
-                    <div className="alert border-0 mb-0" 
-                         style={{ 
-                           background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
-                           border: '2px solid #f87171',
-                           borderRadius: '12px'
-                         }}>
-                      <div className="d-flex align-items-start">
-                        <div className="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center me-3 flex-shrink-0" 
+                        <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" 
                              style={{width: '32px', height: '32px', fontSize: '16px'}}>
-                          ⚠️
+                          ✅
                         </div>
                         <div>
-                          <h6 className="text-danger fw-bold mb-2">CRITICAL ACTION REQUIRED</h6>
-                          <ul className="text-danger mb-2 fw-medium lh-lg">
-                            <li>Permanently delete user: <strong>{userToDelete.name}</strong></li>
-                            <li>Delete <strong>{userDependencies.summary.total}</strong> related dependencies</li>
-                            <li><strong>This action CANNOT be undone</strong></li>
-                          </ul>
-                          <p className="text-danger small mb-0 fst-italic">
-                            Please ensure you have backed up any important data before proceeding.
+                          <h6 className="text-success fw-bold mb-1">Safe to Delete</h6>
+                          <p className="text-success mb-0 small">
+                            This user has no dependencies and can be safely deleted without affecting other data.
                           </p>
                         </div>
                       </div>
                     </div>
-                  </>
-                ) : (
-                  <div className="alert border-0" 
-                       style={{ 
-                         background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
-                         borderLeft: '4px solid #10b981',
-                         borderRadius: '12px'
-                       }}>
-                    <div className="d-flex align-items-center">
-                      <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" 
-                           style={{width: '32px', height: '32px', fontSize: '16px'}}>
-                        ✅
-                      </div>
-                      <div>
-                        <h6 className="text-success fw-bold mb-1">Safe to Delete</h6>
-                        <p className="text-success mb-0 small">
-                          This user has no dependencies and can be safely deleted without affecting other data.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : null}
-          </AlertDialogDescription>
-          
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDeleteCancel}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              variant="danger"
-              onClick={handleDeleteConfirm}
-              className="d-flex align-items-center"
-            >
-              <Trash2 className="me-2" style={{width: '18px', height: '18px'}} />
-              {userDependencies && userDependencies.summary.total > 0 ? 'Delete with Dependencies' : 'Delete User'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+                  )}
+                </>
+              ) : null}
+            </div>
+            
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={handleDeleteCancel}>
+                Cancel
+              </button>
+              <button type="button" 
+                      className="btn btn-danger d-flex align-items-center" 
+                      onClick={handleDeleteConfirm}>
+                <Trash2 className="me-2" style={{width: '18px', height: '18px'}} />
+                {userDependencies && userDependencies.summary.total > 0 ? 'Delete with Dependencies' : 'Delete User'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {deleteDialogOpen && <div className="modal-backdrop fade show"></div>}
 
       {/* Add User Modal */}
       <AddUserModal
