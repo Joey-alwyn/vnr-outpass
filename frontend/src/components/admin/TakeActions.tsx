@@ -170,32 +170,6 @@ const TakeActions: React.FC<TakeActionsProps> = ({
     }
   };
 
-  const handleBulkAssignMentors = async (action: PendingAction, mentorId: string) => {
-    try {
-      setActionLoading(action.userId);
-      
-      const studentIds = action.users?.map(u => u.id) || action.students?.map(s => s.id) || [];
-      
-      const response = await api.post('/admin/bulk-assign-mentors', {
-        studentIds,
-        mentorId
-      });
-
-      toast.success('Mentors Assigned', {
-        description: response.data.message
-      });
-
-      // Refresh data to reflect changes
-      await fetchAllData();
-    } catch (error: any) {
-      toast.error('Failed to Assign Mentors', {
-        description: error.response?.data?.error || 'Unable to assign mentors. Please try again.'
-      });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const handleRoleRequest = async (action: PendingAction, actionType: 'approve' | 'reject', assignedRole?: string) => {
     if (!action.notificationId) return;
 
