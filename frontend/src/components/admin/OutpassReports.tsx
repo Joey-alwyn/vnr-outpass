@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { FileText, Download, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { api } from '../../api';
+import Pagination from '../ui/Pagination';
 
 interface OutpassEvent {
   id: string;
@@ -33,6 +34,10 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
     startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days ago
     endDate: new Date().toISOString().split('T')[0] // today
   });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchEventLogs();
@@ -315,64 +320,91 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
               <p className="text-muted">No outpass events found for the selected date range.</p>
             </div>
           ) : (
-            <div className="table-responsive">
-              <table className="table table-hover mb-0">
-                <thead className="bg-light">
-                  <tr>
-                    <th>Timestamp</th>
-                    <th>Event</th>
-                    <th>Outpass ID</th>
-                    <th>Student</th>
-                    <th>Actor</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {events.map((event) => (
-                    <tr key={event.id}>
-                      <td>
-                        <div className="d-flex align-items-center">
-                          <Clock size={14} className="text-muted me-2" />
-                          <small>{formatTimestamp(event.timestamp)}</small>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="d-flex align-items-center">
-                          {getEventIcon(event.event)}
-                          <span className={`badge bg-${getEventColor(event.event)}-subtle text-${getEventColor(event.event)} ms-2`}>
-                            {event.event}
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <code className="small">{event.outpassId}</code>
-                      </td>
-                      <td>
-                        {event.student && (
-                          <div>
-                            <div className="fw-medium small">{event.student.name}</div>
-                            <small className="text-muted">{event.student.email}</small>
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        {event.user && (
-                          <div>
-                            <div className="fw-medium small">{event.user.name}</div>
-                            <small className={`badge bg-secondary-subtle text-secondary`}>
-                              {event.user.role}
-                            </small>
-                          </div>
-                        )}
-                      </td>
-                      <td>
-                        <small className="text-muted">{event.description}</small>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            (() => {
+              // Calculate pagination values once
+              const totalPages = Math.ceil(events.length / itemsPerPage);
+              const startIndex = (currentPage - 1) * itemsPerPage;
+              const endIndex = startIndex + itemsPerPage;
+              const currentEvents = events.slice(startIndex, endIndex);
+
+              return (
+                <>
+                  <div className="table-responsive">
+                    <table className="table table-hover mb-0">
+                      <thead className="bg-light">
+                        <tr>
+                          <th>Timestamp</th>
+                          <th>Event</th>
+                          <th>Outpass ID</th>
+                          <th>Student</th>
+                          <th>Actor</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentEvents.map((event) => (
+                        <tr key={event.id}>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              <Clock size={14} className="text-muted me-2" />
+                              <small>{formatTimestamp(event.timestamp)}</small>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              {getEventIcon(event.event)}
+                              <span className={`badge bg-${getEventColor(event.event)}-subtle text-${getEventColor(event.event)} ms-2`}>
+                                {event.event}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <code className="small">{event.outpassId}</code>
+                          </td>
+                          <td>
+                            {event.student && (
+                              <div>
+                                <div className="fw-medium small">{event.student.name}</div>
+                                <small className="text-muted">{event.student.email}</small>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            {event.user && (
+                              <div>
+                                <div className="fw-medium small">{event.user.name}</div>
+                                <small className={`badge bg-secondary-subtle text-secondary`}>
+                                  {event.user.role}
+                                </small>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <small className="text-muted">{event.description}</small>
+                          </td>
+                        </tr>
+                      ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 px-3">
+                      <small className="text-muted mb-2 mb-md-0">
+                        Showing {startIndex + 1}-{Math.min(endIndex, events.length)} of {events.length} events
+                      </small>
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                        className="mt-2 mt-md-0"
+                      />
+                    </div>
+                  )}
+                </>
+              );
+            })()
           )}
         </div>
       </div>

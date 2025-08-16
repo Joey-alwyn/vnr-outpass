@@ -11,9 +11,7 @@ import {
   Calendar,
   Award,
   Shield,
-  AlertTriangle,
-  ChevronLeft,
-  ChevronRight
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../../api';
@@ -27,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../ui/alert-dialog";
+import Pagination from '../ui/Pagination';
 import AddUserModal from './AddUserModal';
 import EditUserModal from './EditUserModal';
 import BulkAddModal from './BulkAddModal';
@@ -118,90 +117,6 @@ const UserManagement: React.FC<UserManagementProps> = ({
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterRole]);
-
-  // Pagination component
-  const Pagination: React.FC<{
-    currentPage: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
-    className?: string;
-  }> = ({ currentPage, totalPages, onPageChange, className = '' }) => {
-    if (totalPages <= 1) return null;
-
-    const getPageNumbers = () => {
-      const pages = [];
-      const maxVisiblePages = 5;
-      
-      if (totalPages <= maxVisiblePages) {
-        for (let i = 1; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        const start = Math.max(1, currentPage - 2);
-        const end = Math.min(totalPages, start + maxVisiblePages - 1);
-        
-        if (start > 1) {
-          pages.push(1);
-          if (start > 2) pages.push('...');
-        }
-        
-        for (let i = start; i <= end; i++) {
-          pages.push(i);
-        }
-        
-        if (end < totalPages) {
-          if (end < totalPages - 1) pages.push('...');
-          pages.push(totalPages);
-        }
-      }
-      
-      return pages;
-    };
-
-    return (
-      <nav className={`d-flex justify-content-center ${className}`}>
-        <ul className="pagination pagination-sm">
-          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-            <button
-              className="page-link"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft size={16} />
-            </button>
-          </li>
-          
-          {getPageNumbers().map((page, index) => (
-            <li
-              key={index}
-              className={`page-item ${typeof page === 'number' && page === currentPage ? 'active' : ''} ${typeof page === 'string' ? 'disabled' : ''}`}
-            >
-              {typeof page === 'number' ? (
-                <button
-                  className="page-link"
-                  onClick={() => onPageChange(page)}
-                >
-                  {page}
-                </button>
-              ) : (
-                <span className="page-link">{page}</span>
-              )}
-            </li>
-          ))}
-          
-          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-            <button
-              className="page-link"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </li>
-        </ul>
-      </nav>
-    );
-  };
 
   const handleDeleteClick = async (user: User) => {
     setUserToDelete(user);
@@ -329,125 +244,233 @@ const UserManagement: React.FC<UserManagementProps> = ({
       </div>
       
       <div className="users-table card border-0 shadow-lg overflow-hidden">
-        <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0">
-            <thead className="table-light">
-              <tr>
-                <th className="fw-bold text-muted text-uppercase small px-4 py-3">User</th>
-                <th className="fw-bold text-muted text-uppercase small px-4 py-3">Role</th>
-                <th className="fw-bold text-muted text-uppercase small px-4 py-3">Contact</th>
-                <th className="fw-bold text-muted text-uppercase small px-4 py-3">Joined</th>
-                <th className="fw-bold text-muted text-uppercase small px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedUsers.map((user) => (
-                <tr key={user.id} className="border-bottom">
-                  <td className="px-4 py-3">
-                    <div className="d-flex align-items-center">
-                      <div className="user-avatar position-relative me-3">
-                        <div className="rounded-3 d-flex align-items-center justify-content-center shadow" 
-                             style={{
-                               width: '3rem', 
-                               height: '3rem', 
-                               background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)'
-                             }}>
-                          <span className="text-white fw-bold">
-                            {user.name.charAt(0).toUpperCase()}
-                          </span>
+        {/* Desktop Table View */}
+        <div className="d-none d-lg-block">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th className="fw-bold text-muted text-uppercase small px-4 py-3">User</th>
+                  <th className="fw-bold text-muted text-uppercase small px-4 py-3">Role</th>
+                  <th className="fw-bold text-muted text-uppercase small px-4 py-3">Contact</th>
+                  <th className="fw-bold text-muted text-uppercase small px-4 py-3">Joined</th>
+                  <th className="fw-bold text-muted text-uppercase small px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedUsers.map((user) => (
+                  <tr key={user.id} className="border-bottom">
+                    <td className="px-4 py-3">
+                      <div className="d-flex align-items-center">
+                        <div className="user-avatar position-relative me-3 flex-shrink-0">
+                          <div className="rounded-3 d-flex align-items-center justify-content-center shadow" 
+                               style={{
+                                 width: '2.5rem', 
+                                 height: '2.5rem', 
+                                 background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)'
+                               }}>
+                            <span className="text-white fw-bold" style={{ fontSize: '0.9rem' }}>
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white" 
+                               style={{width: '0.8rem', height: '0.8rem'}}></div>
                         </div>
-                        <div className="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white" 
-                             style={{width: '1rem', height: '1rem'}}></div>
+                        <div className="min-w-0 flex-grow-1">
+                          <div className="user-name fw-bold text-dark">{user.name}</div>
+                          <div className="user-email d-flex align-items-center text-muted small">
+                            <Mail className="me-1 flex-shrink-0" style={{width: '0.75rem', height: '0.75rem'}} />
+                            <span>{user.email}</span>
+                          </div>
+                        </div>
                       </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`role-badge btn btn-sm ${getRoleBootstrapColor(user.role)} d-flex align-items-center justify-content-center`}>
+                        {getRoleIcon(user.role)}
+                        <span className="ms-1">{user.role}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
                       <div>
-                        <div className="user-name fw-bold text-dark">{user.name}</div>
-                        <div className="user-email d-flex align-items-center text-muted small">
-                          <Mail className="me-1" style={{width: '0.75rem', height: '0.75rem'}} />
-                          {user.email}
-                        </div>
+                        {user.mobile ? (
+                          <div className="contact-info d-flex align-items-center small fw-medium text-dark">
+                            <Phone className="me-2 text-muted flex-shrink-0" style={{width: '1rem', height: '1rem'}} />
+                            <span>{user.mobile}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted fst-italic small">No mobile</span>
+                        )}
+                        {user.role === 'STUDENT' && user.parentMobile && (
+                          <div className="contact-secondary d-flex align-items-center text-muted small mt-1">
+                            <Phone className="me-1 flex-shrink-0" style={{width: '0.75rem', height: '0.75rem'}} />
+                            <span>Parent: {user.parentMobile}</span>
+                          </div>
+                        )}
                       </div>
+                    </td>
+                    <td className="px-4 py-3 small fw-medium text-dark">
+                      <div className="d-flex align-items-center">
+                        <Calendar className="me-2 text-muted" style={{width: '1rem', height: '1rem'}} />
+                        {formatDate(user.createdAt)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          title="View Details"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowEditUserModal(true);
+                          }}
+                        >
+                          <Eye style={{width: '1rem', height: '1rem'}} />
+                        </button>
+                        <button
+                          className="btn btn-outline-success btn-sm"
+                          title="Edit User"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowEditUserModal(true);
+                          }}
+                        >
+                          <Edit style={{width: '1rem', height: '1rem'}} />
+                        </button>
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          title="Delete User"
+                          onClick={() => handleDeleteClick(user)}
+                        >
+                          <Trash2 style={{width: '1rem', height: '1rem'}} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="d-lg-none">
+          <div className="p-3">
+            {paginatedUsers.map((user) => (
+              <div key={user.id} className="card mb-3 border shadow-sm">
+                <div className="card-body p-3">
+                  {/* User Header */}
+                  <div className="d-flex align-items-center mb-3">
+                    <div className="user-avatar position-relative me-3 flex-shrink-0">
+                      <div className="rounded-3 d-flex align-items-center justify-content-center shadow" 
+                           style={{
+                             width: '3rem', 
+                             height: '3rem', 
+                             background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)'
+                           }}>
+                        <span className="text-white fw-bold">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white" 
+                           style={{width: '1rem', height: '1rem'}}></div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`role-badge btn btn-sm ${getRoleBootstrapColor(user.role)} d-flex align-items-center`}>
-                      {getRoleIcon(user.role)}
-                      <span className="ms-1">{user.role}</span>
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div>
+                    <div className="flex-grow-1">
+                      <h6 className="mb-1 fw-bold text-dark">{user.name}</h6>
+                      <span className={`badge ${getRoleBootstrapColor(user.role)} d-inline-flex align-items-center`}>
+                        {getRoleIcon(user.role)}
+                        <span className="ms-1">{user.role}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* User Details */}
+                  <div className="mb-3">
+                    {/* Email */}
+                    <div className="d-flex align-items-center mb-2">
+                      <Mail className="me-2 text-muted flex-shrink-0" style={{width: '1rem', height: '1rem'}} />
+                      <span className="text-muted small">{user.email}</span>
+                    </div>
+
+                    {/* Contact */}
+                    <div className="d-flex align-items-center mb-2">
+                      <Phone className="me-2 text-muted flex-shrink-0" style={{width: '1rem', height: '1rem'}} />
                       {user.mobile ? (
-                        <div className="contact-info d-flex align-items-center small fw-medium text-dark">
-                          <Phone className="me-2 text-muted" style={{width: '1rem', height: '1rem'}} />
-                          {user.mobile}
-                        </div>
+                        <span className="small fw-medium text-dark">{user.mobile}</span>
                       ) : (
                         <span className="text-muted fst-italic small">No mobile</span>
                       )}
-                      {user.role === 'STUDENT' && user.parentMobile && (
-                        <div className="contact-secondary d-flex align-items-center text-muted small">
-                          <Phone className="me-1" style={{width: '0.75rem', height: '0.75rem'}} />
-                          Parent: {user.parentMobile}
-                        </div>
-                      )}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 small fw-medium text-dark">
+
+                    {/* Parent Contact for Students */}
+                    {user.role === 'STUDENT' && user.parentMobile && (
+                      <div className="d-flex align-items-center mb-2">
+                        <Phone className="me-2 text-muted flex-shrink-0" style={{width: '0.875rem', height: '0.875rem'}} />
+                        <span className="text-muted small">Parent: {user.parentMobile}</span>
+                      </div>
+                    )}
+
+                    {/* Join Date */}
                     <div className="d-flex align-items-center">
-                      <Calendar className="me-2 text-muted" style={{width: '1rem', height: '1rem'}} />
-                      {formatDate(user.createdAt)}
+                      <Calendar className="me-2 text-muted flex-shrink-0" style={{width: '1rem', height: '1rem'}} />
+                      <span className="small text-muted">Joined {formatDate(user.createdAt)}</span>
                     </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="d-flex gap-2">
+                  </div>
+
+                  {/* Actions */}
+                  <div className="d-grid gap-2">
+                    <div className="btn-group" role="group">
                       <button
                         className="btn btn-outline-primary btn-sm"
-                        title="View Details"
                         onClick={() => {
                           setSelectedUser(user);
                           setShowEditUserModal(true);
                         }}
                       >
-                        <Eye style={{width: '1rem', height: '1rem'}} />
+                        <Eye className="me-1" style={{width: '1rem', height: '1rem'}} />
+                        View
                       </button>
                       <button
                         className="btn btn-outline-success btn-sm"
-                        title="Edit User"
                         onClick={() => {
                           setSelectedUser(user);
                           setShowEditUserModal(true);
                         }}
                       >
-                        <Edit style={{width: '1rem', height: '1rem'}} />
+                        <Edit className="me-1" style={{width: '1rem', height: '1rem'}} />
+                        Edit
                       </button>
                       <button
                         className="btn btn-outline-danger btn-sm"
-                        title="Delete User"
                         onClick={() => handleDeleteClick(user)}
                       >
-                        <Trash2 style={{width: '1rem', height: '1rem'}} />
+                        <Trash2 className="me-1" style={{width: '1rem', height: '1rem'}} />
+                        Delete
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        
-        {/* Pagination */}
+
+        <div className='mb-3'>
+          {/* Pagination */}
         {totalPages > 1 && (
-          <div className="d-flex justify-content-between align-items-center mt-4">
-            <small className="text-muted">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 px-3">
+            <small className="text-muted mb-2 mb-md-0">
               Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of {totalUsers} users
             </small>
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
+              className="mt-2 mt-md-0"
             />
           </div>
         )}
+        </div>
         
         {filteredUsers.length === 0 && (
           <div className="empty-state text-center py-5">

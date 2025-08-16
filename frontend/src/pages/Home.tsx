@@ -121,9 +121,9 @@ const Home: React.FC = () => {
                       Login with your college Google account to continue
                     </small>
                   </div>
-                  <div className="mb-4">
-                    <LoginButton />
-                  </div>
+                  <div className="mb-4 d-flex justify-content-center">
+  <LoginButton />
+</div>
                     
                   <div className="mt-5">
                     <h6 className="fw-bold mb-4 text-center" style={{ 
@@ -619,6 +619,19 @@ const Home: React.FC = () => {
                   <button
                     className="btn btn-outline-purple btn-lg px-4 py-2 d-inline-flex align-items-center rounded-pill"
                     onClick={() => nav('/hod')}
+                    style={{
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#3b82f6';
+                      e.currentTarget.style.borderColor = '#3b82f6';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.borderColor = '';
+                      e.currentTarget.style.color = '';
+                    }}
                   >
                     <Shield size={20} className="me-2" />
                     Open HOD Panel

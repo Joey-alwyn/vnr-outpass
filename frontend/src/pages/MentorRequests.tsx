@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '../api'
 import { toast } from 'sonner'
+import Pagination from '../components/ui/Pagination'
 
 type Req = {
   id: string
@@ -16,6 +17,10 @@ type Req = {
 const MentorRequests: React.FC = () => {
   const [reqs, setReqs] = useState<Req[]>([])
   const [error, setError] = useState<string | null>(null)
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 6
 
   const fetchReqs = async () => {
     try {
@@ -69,6 +74,12 @@ const MentorRequests: React.FC = () => {
     }
   }
 
+  // Pagination calculations
+  const totalPages = Math.ceil(reqs.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentReqs = reqs.slice(startIndex, endIndex)
+
   return (
     <div className="container py-4">
       <h2 className="mb-4 text-center">Pending Gate Pass Requests</h2>
@@ -77,7 +88,7 @@ const MentorRequests: React.FC = () => {
       {reqs.length === 0 && <div className="text-center text-muted">No pending requests.</div>}
 
       <div className="row g-4">
-        {reqs.map(r => (
+        {currentReqs.map(r => (
           <div className="col-md-6" key={r.id}>
             <div className="card shadow-sm h-100">
               <div className="card-body">
@@ -104,6 +115,21 @@ const MentorRequests: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4">
+          <small className="text-muted mb-2 mb-md-0">
+            Showing {startIndex + 1}-{Math.min(endIndex, reqs.length)} of {reqs.length} requests
+          </small>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            className="mt-2 mt-md-0"
+          />
+        </div>
+      )}
     </div>
   )
 }

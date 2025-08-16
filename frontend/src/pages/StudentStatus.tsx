@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 import { toast } from 'sonner';
 import { Users, Shield, AlertCircle } from 'lucide-react';
+import Pagination from '../components/ui/Pagination';
 
 type Pass = {
   id: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ESCALATED' | 'UTILIZED';
   qr: string | null;
   appliedAt: string;
-  reason: string; // ✅ Added reason
+  reason: string;
 };
 
 type Mentor = {
@@ -23,6 +24,10 @@ const StudentStatus: React.FC = () => {
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showQrFor, setShowQrFor] = useState<string | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
 
   useEffect(() => {
     const fetchPasses = async () => {
@@ -48,8 +53,8 @@ const StudentStatus: React.FC = () => {
         const res = await api.get<{ mentor: Mentor }>('/student/mentor');
         setMentor(res.data.mentor);
       } catch (err) {
-        console.log('Failed to fetch mentor details:', err);
-        setMentor(null);
+        console.error('Failed to fetch mentor info:', err);
+        // Don't show toast for mentor fetch failure, it's not critical
       }
     };
 
@@ -57,39 +62,33 @@ const StudentStatus: React.FC = () => {
     fetchMentor();
   }, []);
 
-  if (error)
-    return <div className="alert alert-danger text-center">{error}</div>;
-  if (passes.length === 0)
-    return <div className="text-center">No gate passes found.</div>;
+  // Pagination calculations
+  const totalPages = Math.ceil(passes.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPasses = passes.slice(startIndex, endIndex);
 
   return (
     <div className="container mt-4">
-      <h2 className="mb-4 text-center">Your Gate Passes</h2>
-      
-      {/* Mentor Information */}
+      <div className="row justify-content-center">
+        <div className="col-12">
+          <h2 className="text-center mb-4">Your Gate Pass Status</h2>
+        </div>
+      </div>
+
       <div className="row mb-4">
         <div className="col-12">
           <div className="card shadow-sm">
             <div className="card-body">
               <h5 className="card-title d-flex align-items-center">
-                <Users className="me-2 text-primary" size={20} />
-                Your Mentor
+                <Shield className="me-2 text-primary" size={24} />
+                Your Mentor Details
               </h5>
               {mentor ? (
-                <div className="d-flex align-items-start">
-                  <div className="d-inline-flex align-items-center justify-content-center me-3"
-                       style={{ 
-                         width: '40px', 
-                         height: '40px',
-                         borderRadius: '10px',
-                         background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)'
-                       }}>
-                    <Shield size={20} className="text-primary" />
-                  </div>
+                <div className="d-flex align-items-center text-success">
+                  <Users size={20} className="me-2" />
                   <div>
-                    <h6 className="mb-1 fw-bold">{mentor.name}</h6>
-                    <p className="mb-1 text-muted small">{mentor.email}</p>
-                    <span className="badge bg-primary">{mentor.role}</span>
+                    <strong>{mentor.name}</strong> ({mentor.email}) - {mentor.role}
                   </div>
                 </div>
               ) : (
@@ -103,14 +102,15 @@ const StudentStatus: React.FC = () => {
         </div>
       </div>
 
+      {error && <div className="alert alert-danger">{error}</div>}
+
       <div className="row">
-        {passes.map((p) => (
+        {currentPasses.map((p) => (
           <div key={p.id} className="col-md-6 mb-4">
             <div className="card shadow-sm h-100">
               <div className="card-body">
                 <h5 className="card-title">Pass ID: {p.id}</h5>
                 
-                {/* ✅ Reason added here */}
                 <p className="card-text">
                   <strong>Reason:</strong> {p.reason}
                 </p>
@@ -128,51 +128,35 @@ const StudentStatus: React.FC = () => {
                   <div className="text-center mt-3">
                     {!p.qr ? (
                       <p className="text-muted">QR Code not generated yet.</p>
-                    ) : !showQrFor || showQrFor !== p.id ? (
-                      <button
-                        onClick={() => {
-                          setShowQrFor(p.id);
-                          toast.success('QR Code Displayed', {
-                            description: 'Present this QR code to security when exiting the campus.'
-                          });
-                        }}
-                        className="btn btn-primary"
-                      >
-                        Show QR Code
-                      </button>
                     ) : (
-                      <div>
-                        <p className="mb-2">Present this QR to security:</p>
-                        <img
-                          src={p.qr}
-                          alt="Gate Pass QR"
-                          className="img-fluid border"
-                          style={{ maxWidth: '250px' }}
-                        />
-                        <div className="mt-3">
-                          <button
-                            onClick={() => {
-                              setShowQrFor(null);
-                              toast.info('QR Code Hidden', {
-                                description: 'QR code has been hidden for security.'
-                              });
-                            }}
-                            className="btn btn-outline-secondary"
+                      <>
+                        {showQrFor === p.id ? (
+                          <div>
+                            <img 
+                              src={p.qr} 
+                              alt="QR Code" 
+                              className="img-fluid mb-2" 
+                              style={{maxWidth: '200px'}} 
+                            />
+                            <br />
+                            <button 
+                              className="btn btn-secondary btn-sm" 
+                              onClick={() => setShowQrFor(null)}
+                            >
+                              Hide QR
+                            </button>
+                          </div>
+                        ) : (
+                          <button 
+                            className="btn btn-success" 
+                            onClick={() => setShowQrFor(p.id)}
                           >
-                            Hide QR
+                            Show QR Code
                           </button>
-                        </div>
-                      </div>
+                        )}
+                      </>
                     )}
                   </div>
-                )}
-
-                {/* Other Status Messages */}
-                {p.status === 'PENDING' && (
-                  <p className="text-warning">Your request is pending approval.</p>
-                )}
-                {p.status === 'REJECTED' && (
-                  <p className="text-danger">Your request was rejected.</p>
                 )}
                 {(p.status === 'ESCALATED' || p.status === 'UTILIZED') && (
                   <p className="text-muted">
@@ -184,6 +168,21 @@ const StudentStatus: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4">
+          <small className="text-muted mb-2 mb-md-0">
+            Showing {startIndex + 1}-{Math.min(endIndex, passes.length)} of {passes.length} gate passes
+          </small>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            className="mt-2 mt-md-0"
+          />
+        </div>
+      )}
     </div>
   );
 };

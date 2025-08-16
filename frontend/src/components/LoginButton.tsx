@@ -10,8 +10,10 @@ export function LoginButton() {
   const [loading, setLoading] = useState(false);
 
   return (
-    <div className="w-100">
-      <div className="d-flex justify-content-center mb-3">
+    // Make this the centering container
+    <div className="d-flex flex-column align-items-center w-100">
+      {/* This inner div is no longer needed for centering */}
+      <div className="mb-3">
         <GoogleLogin
           onSuccess={async (credentialResponse) => {
             const idToken = credentialResponse.credential;
@@ -57,7 +59,7 @@ export function LoginButton() {
       )}
 
       {error && (
-        <div className="alert alert-danger border-0 py-3 fade-in">
+        <div className="alert alert-danger border-0 py-3 fade-in" style={{ width: '300px' }}>
           <div className="d-flex align-items-start">
             <AlertCircle size={18} className="text-danger me-2 mt-1 flex-shrink-0" />
             <div>
