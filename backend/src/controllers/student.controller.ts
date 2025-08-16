@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../prisma/client';
 import QRCode from 'qrcode';
 import { smsService } from '../utils/sms.util';
+import { API_BASE_URL } from '../config';
 
 export async function applyGatePass(req: Request, res: Response): Promise<any> {
   const user = (req as any).user;
@@ -105,7 +106,7 @@ export async function getStudentStatus(req: Request, res: Response) {
     const enhanced = await Promise.all(
       passes.map(async (p) => {
         if (p.status === 'APPROVED' && p.qrToken) {
-          const url = `http://localhost:4000/api/security/scan/${p.id}/${p.qrToken}`;
+          const url = `${API_BASE_URL}/security/scan/${p.id}/${p.qrToken}`;
           const qr = await QRCode.toDataURL(url);
           return { ...p, qr };
         }
