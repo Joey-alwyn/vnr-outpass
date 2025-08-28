@@ -122,22 +122,14 @@ class SMSService {
   }
 
   /**
-   * Send QR scan notification to parent using Adeep.in API
+   * Send QR scan notification to parent using DLT-approved template
+   * Template: Dear Parent, your ward {#var#}, {#var#} has been granted permission to leave college premises via Outpass for the following reason:{#var#}.-VNR Vignana Jyothi Institute of Engineering and Technology.
+   * TID: 1607100000000358305
    */
-  async sendQRScannedToParent(name: string, reason: string, mobile: string, scanTime: Date): Promise<boolean> {
+  async sendQRScannedToParent(name: string, rollno: string, reason: string, mobile: string, scanTime: Date): Promise<boolean> {
     const baseUrl = 'https://textsms.adeep.in/api.php';
     
-    const formatTime = scanTime.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    
-    const message = `OUTPASS UPDATE: Your ward ${name} has LEFT the college premises at ${formatTime}. Purpose: ${reason}. Stay updated! - VNRVJIET`;
+    const message = `Dear Parent, your ward ${name}, ${rollno} has been granted permission to leave college premises via Outpass for the following reason:${reason}.-VNR Vignana Jyothi Institute of Engineering and Technology.`;
 
     const params = new URLSearchParams({
       username: 'VNRVJIET',
@@ -146,7 +138,7 @@ class SMSService {
       route: 'TRANS',
       mobile: mobile,
       text: message,
-      TID: '1607100000000353767',
+      TID: '1607100000000358305', // DLT template ID for parent QR scan notification
       PEID: '1601100000000013508',
     });
 
@@ -176,11 +168,13 @@ class SMSService {
   }
 
   /**
-   * Send notification to mentor using Adeep.in API
+   * Send notification to mentor using DLT-approved template
+   * Template: Dear Mentor, your mentee {#var#}, {#var#} has applied for an Outpass with reason:{#var#}. Please review and take action by visiting the Outpass website. - VNR Vignana Jyothi Institute of Engineering and Technology.
+   * TID: 1607100000000358304
    */
-  async sendMentorNotification(mentorName: string, studentName: string, reason: string, mobile: string): Promise<boolean> {
+  async sendMentorNotification(mentorName: string, studentName: string, rollno: string, reason: string, mobile: string): Promise<boolean> {
     const baseUrl = 'https://textsms.adeep.in/api.php';
-    const message = `Alert: Your mentee ${studentName} has submitted an outpass request. Reason: ${reason}. Please review and approve/reject in the system. - VNRVJIET`;
+    const message = `Dear Mentor, your mentee ${studentName}, ${rollno} has applied for an Outpass with reason:${reason}. Please review and take action by visiting the Outpass website. - VNR Vignana Jyothi Institute of Engineering and Technology.`;
 
     const params = new URLSearchParams({
       username: 'VNRVJIET',
@@ -189,7 +183,7 @@ class SMSService {
       route: 'TRANS',
       mobile: mobile,
       text: message,
-      TID: '1607100000000353767',
+      TID: '1607100000000358304', // DLT template ID for mentor notification
       PEID: '1601100000000013508',
     });
 

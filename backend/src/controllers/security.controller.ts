@@ -45,8 +45,11 @@ export const scanQRCode: RequestHandler = async (req, res) => {
       
       if (parentMobile) {
         console.log('📱 Attempting to send QR scan SMS to parent...');
+        // Extract roll number from email (assuming format: rollno@domain.com)
+        const rollno = pass.student.email.split('@')[0];
         await smsService.sendQRScannedToParent(
           pass.student.name,
+          rollno,
           pass.reason,
           parentMobile,
           updated.scannedAt || new Date()
