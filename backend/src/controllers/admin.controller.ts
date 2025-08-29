@@ -94,7 +94,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
  */
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, name, role } = req.body;
+    const { email, name, role, mobile, parentMobile } = req.body;
 
     console.log(`🔍 Creating new user: ${email} with role ${role}...`);
 
@@ -114,6 +114,11 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid role specified' });
     }
 
+    // For students, parentMobile is required
+    if (role === 'STUDENT' && (!parentMobile || !parentMobile.trim())) {
+      return res.status(400).json({ error: 'Parent mobile number is required for students' });
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() }
@@ -129,12 +134,16 @@ export const createUser = async (req: Request, res: Response) => {
         email: email.toLowerCase(),
         name: name.trim(),
         role: role as Role,
+        mobile: mobile ? mobile.trim() : null,
+        parentMobile: role === 'STUDENT' ? (parentMobile ? parentMobile.trim() : null) : null,
       },
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
+        mobile: true,
+        parentMobile: true,
         createdAt: true,
       },
     });
