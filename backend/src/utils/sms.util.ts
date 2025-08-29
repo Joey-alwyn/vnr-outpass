@@ -78,48 +78,6 @@ class SMSService {
     }
   }
 
-  /**
-   * Send outpass request notification to parent using Adeep.in API
-   */
-  async sendOutpassRequestToParent(name: string, reason: string, mobile: string): Promise<boolean> {
-    const baseUrl = 'https://textsms.adeep.in/api.php';
-    const message = `Dear Parent, your ward ${name} has requested for a Gatepass due to ${reason} - VNRVJIET`;
-
-    const params = new URLSearchParams({
-      username: 'VNRVJIET',
-      apikey: '4GHeq5OTe8Hj',
-      senderid: 'VNRVJI',
-      route: 'TRANS',
-      mobile: mobile,
-      text: message,
-      TID: '1607100000000353767',
-      PEID: '1601100000000013508',
-    });
-
-    const url = `${baseUrl}?${params.toString()}`;
-    
-    console.log(`📱 Sending SMS to parent ${mobile}: ${message}`);
-
-    try {
-      const response = await axios.get(url, {
-        timeout: 10000, // 10 seconds timeout
-        httpsAgent: new (require('https').Agent)({
-          rejectUnauthorized: false
-        })
-      });
-
-      if (response.status === 200) {
-        console.log(`✅ SMS sent successfully to parent ${mobile}:`, response.data);
-        return true;
-      } else {
-        console.error(`❌ SMS failed with status ${response.status}:`, response.data);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ SMS sending error:', error);
-      return false;
-    }
-  }
 
   /**
    * Send QR scan notification to parent using DLT-approved template
@@ -212,80 +170,6 @@ class SMSService {
     }
   }
 
-  /**
-   * Send outpass request notification to mentor and parent
-   */
-  async notifyOutpassRequest(studentName: string, reason: string, mentorMobile: string, parentMobile: string): Promise<void> {
-    const mentorMessage = `Dear Mentor, your student ${studentName} has requested for a Gatepass due to ${reason} - VNRVJIET`;
-    const parentMessage = `Dear Parent, your ward ${studentName} has requested for a Gatepass due to ${reason} - VNRVJIET`;
-
-    // Send to mentor
-    if (mentorMobile) {
-      await this.sendSMS(mentorMobile, mentorMessage);
-    }
-
-    // Send to parent
-    if (parentMobile) {
-      await this.sendSMS(parentMobile, parentMessage);
-    }
-  }
-
-  /**
-   * Send QR scan notification to parent only
-   */
-  async notifyQRScanned(studentName: string, reason: string, parentMobile: string, scanTime: Date): Promise<void> {
-    const formatTime = scanTime.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-
-    const parentMessage = `Dear Parent, your ward ${studentName} has successfully exited the campus at ${formatTime} for ${reason} - VNRVJIET`;
-
-    if (parentMobile) {
-      await this.sendSMS(parentMobile, parentMessage);
-    }
-  }
-
-  /**
-   * Send approval notification to student and parent
-   */
-  async notifyOutpassApproval(studentName: string, reason: string, studentMobile: string, parentMobile: string): Promise<void> {
-    const studentMessage = `APPROVED! Your outpass request for ${reason} has been approved by your mentor. Check your dashboard for QR code. - VNRVJIET`;
-    const parentMessage = `OUTPASS APPROVED: Your ward ${studentName}'s outpass request has been approved. Purpose: ${reason}. They can now exit campus. - VNRVJIET`;
-
-    // Send to student
-    if (studentMobile) {
-      await this.sendSMS(studentMobile, studentMessage);
-    }
-
-    // Send to parent
-    if (parentMobile) {
-      await this.sendSMS(parentMobile, parentMessage);
-    }
-  }
-
-  /**
-   * Send rejection notification to student and parent
-   */
-  async notifyOutpassRejection(studentName: string, reason: string, studentMobile: string, parentMobile: string): Promise<void> {
-    const studentMessage = `REJECTED: Your outpass request for ${reason} has been rejected by your mentor. Contact your mentor for details. - VNRVJIET`;
-    const parentMessage = `OUTPASS REJECTED: Your ward ${studentName}'s outpass request has been rejected. Purpose: ${reason}. No campus exit permitted. - VNRVJIET`;
-
-    // Send to student
-    if (studentMobile) {
-      await this.sendSMS(studentMobile, studentMessage);
-    }
-
-    // Send to parent
-    if (parentMobile) {
-      await this.sendSMS(parentMobile, parentMessage);
-    }
-  }
 }
 
 export const smsService = new SMSService();

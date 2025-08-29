@@ -37,25 +37,32 @@ export const scanQRCode: RequestHandler = async (req, res) => {
 
     // Send SMS notification to parent when QR is scanned
     try {
-      console.log('🔍 Checking for parent mobile number...');
-      console.log('Student data:', pass.student);
+      console.log('🔍 Fetching complete student data for SMS...');
       
-      const parentMobile = (pass.student as any).parentMobile || '';
-      console.log('Parent mobile extracted:', parentMobile);
+      const student = await prisma.user.findUnique({
+        where: { email: pass.student.email.toLowerCase() }
+      });
       
-      if (parentMobile) {
-        console.log('📱 Attempting to send QR scan SMS to parent...');
-        // Extract roll number from email (assuming format: rollno@domain.com)
-        const rollno = pass.student.email.split('@')[0];
-        await smsService.sendQRScannedToParent(
-          pass.student.name,
-          rollno,
-          pass.reason,
-          parentMobile,
-          updated.scannedAt || new Date()
-        );
-      } else {
-        console.log('⚠️ No parent mobile number found for student:', pass.student.name);
+      console.log('Student data fetched:', student);
+      
+      if (student?.name) {
+        const parentMobile = (student as any)?.parentMobile || '';
+        console.log('Parent mobile extracted:', parentMobile);
+        
+        if (parentMobile) {
+          console.log('📱 Attempting to send QR scan SMS to parent...');
+          // Extract roll number from email (assuming format: rollno@domain.com)
+          const rollno = student.email.split('@')[0];
+          await smsService.sendQRScannedToParent(
+            student.name,
+            rollno,
+            pass.reason,
+            parentMobile,
+            updated.scannedAt || new Date()
+          );
+        } else {
+          console.log('⚠️ No parent mobile number found for student:', student.name);
+        }
       }
     } catch (smsError) {
       console.error('SMS notification error:', smsError);
