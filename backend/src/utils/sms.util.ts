@@ -87,7 +87,7 @@ class SMSService {
   async sendQRScannedToParent(name: string, rollno: string, reason: string, mobile: string, scanTime: Date): Promise<boolean> {
     const baseUrl = 'https://textsms.adeep.in/api.php';
     
-    const message = `Dear Parent, your ward ${name}, ${rollno} has been granted permission to leave college premises via Outpass for the following reason:${reason}.-VNR Vignana Jyothi Institute of Engineering and Technology.`;
+    const message = `Dear Parent, your ward ${name}, ${rollno} has been granted permission to leave college premises via Outpass for the following reason:"${reason}".-VNR Vignana Jyothi Institute of Engineering and Technology.`;
 
     const params = new URLSearchParams({
       username: 'VNRVJIET',
@@ -132,7 +132,7 @@ class SMSService {
    */
   async sendMentorNotification(mentorName: string, studentName: string, rollno: string, reason: string, mobile: string): Promise<boolean> {
     const baseUrl = 'https://textsms.adeep.in/api.php';
-    const message = `Dear Mentor, your mentee ${studentName}, ${rollno} has applied for an Outpass with reason:${reason}. Please review and take action by visiting the Outpass website. - VNR Vignana Jyothi Institute of Engineering and Technology.`;
+    const message = `Dear Mentor, your mentee ${studentName}, ${rollno} has applied for an Outpass with reason: "${reason}". Please review and take action by visiting the Outpass website. - VNR Vignana Jyothi Institute of Engineering and Technology.`;
 
     const params = new URLSearchParams({
       username: 'VNRVJIET',
