@@ -101,7 +101,7 @@ class SMSService {
     });
 
     const url = `${baseUrl}?${params.toString()}`;
-    
+    //firewall 
     console.log(`📱 Sending QR scan SMS to parent ${mobile}: ${message}`);
 
     try {
