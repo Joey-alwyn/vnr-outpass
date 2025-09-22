@@ -70,7 +70,9 @@ export async function applyGatePass(req: Request, res: Response): Promise<any> {
         // Send notification ONLY to mentor (not parent)
         const mentorMobile = (mentor as any)?.mobile || '';
         if (mentorMobile && mentor?.name) {
-          await smsService.sendMentorNotification(mentor.name, student.name, reason, mentorMobile);
+          // Extract roll number from email (assuming format: rollno@domain.com)
+          const rollno = student.email.split('@')[0];
+          await smsService.sendMentorNotification(mentor.name, student.name, rollno, reason, mentorMobile);
         }
       }
     } catch (smsError) {

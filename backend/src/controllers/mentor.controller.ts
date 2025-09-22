@@ -95,29 +95,13 @@ export async function respondToRequest(req: Request, res: Response): Promise<any
         }
       });
 
-      if (gatePassWithDetails?.student) {
-        const studentMobile = (gatePassWithDetails.student as any).mobile || '';
-        const parentMobile = (gatePassWithDetails.student as any).parentMobile || '';
+      // SMS notifications for approval/rejection are not implemented
+      // Only mentor notification (on application) and parent QR scan notification are available
+      console.log(`✅ Gate pass ${action.toLowerCase()}d for student: ${gatePassWithDetails?.student?.name || 'Unknown'}`);
 
-        if (action === 'APPROVE') {
-          await smsService.notifyOutpassApproval(
-            gatePassWithDetails.student.name,
-            gatePassWithDetails.reason,
-            studentMobile,
-            parentMobile
-          );
-        } else if (action === 'REJECT') {
-          await smsService.notifyOutpassRejection(
-            gatePassWithDetails.student.name,
-            gatePassWithDetails.reason,
-            studentMobile,
-            parentMobile
-          );
-        }
-      }
-    } catch (smsError) {
-      console.error('SMS notification error:', smsError);
-      // Don't fail the request if SMS fails
+    } catch (error) {
+      console.error('Action processing error:', error);
+      // Don't fail the request if there's an error
     }
 
     res.json({ message: `Gate pass ${action.toLowerCase()}d`, gatePass: updated, qr })

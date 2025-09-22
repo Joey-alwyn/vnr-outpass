@@ -78,12 +78,16 @@ class SMSService {
     }
   }
 
+
   /**
-   * Send outpass request notification to parent using Adeep.in API
+   * Send QR scan notification to parent using DLT-approved template
+   * Template: Dear Parent, your ward {#var#}, {#var#} has been granted permission to leave college premises via Outpass for the following reason:{#var#}.-VNR Vignana Jyothi Institute of Engineering and Technology.
+   * TID: 1607100000000358305
    */
-  async sendOutpassRequestToParent(name: string, reason: string, mobile: string): Promise<boolean> {
+  async sendQRScannedToParent(name: string, rollno: string, reason: string, mobile: string, scanTime: Date): Promise<boolean> {
     const baseUrl = 'https://textsms.adeep.in/api.php';
-    const message = `Dear Parent, your ward ${name} has requested for a Gatepass due to ${reason} - VNRVJIET`;
+    
+    const message = `Dear Parent, your ward ${name}, ${rollno} has been granted permission to leave college premises via Outpass for the following reason:${reason}.-VNR Vignana Jyothi Institute of Engineering and Technology.`;
 
     const params = new URLSearchParams({
       username: 'VNRVJIET',
@@ -92,66 +96,12 @@ class SMSService {
       route: 'TRANS',
       mobile: mobile,
       text: message,
-      TID: '1607100000000353767',
+      TID: '1607100000000358305', // DLT template ID for parent QR scan notification
       PEID: '1601100000000013508',
     });
 
     const url = `${baseUrl}?${params.toString()}`;
-    
-    console.log(`📱 Sending SMS to parent ${mobile}: ${message}`);
-
-    try {
-      const response = await axios.get(url, {
-        timeout: 10000, // 10 seconds timeout
-        httpsAgent: new (require('https').Agent)({
-          rejectUnauthorized: false
-        })
-      });
-
-      if (response.status === 200) {
-        console.log(`✅ SMS sent successfully to parent ${mobile}:`, response.data);
-        return true;
-      } else {
-        console.error(`❌ SMS failed with status ${response.status}:`, response.data);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ SMS sending error:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Send QR scan notification to parent using Adeep.in API
-   */
-  async sendQRScannedToParent(name: string, reason: string, mobile: string, scanTime: Date): Promise<boolean> {
-    const baseUrl = 'https://textsms.adeep.in/api.php';
-    
-    const formatTime = scanTime.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    
-    const message = `OUTPASS UPDATE: Your ward ${name} has LEFT the college premises at ${formatTime}. Purpose: ${reason}. Stay updated! - VNRVJIET`;
-
-    const params = new URLSearchParams({
-      username: 'VNRVJIET',
-      apikey: '4GHeq5OTe8Hj',
-      senderid: 'VNRVJI',
-      route: 'TRANS',
-      mobile: mobile,
-      text: message,
-      TID: '1607100000000353767',
-      PEID: '1601100000000013508',
-    });
-
-    const url = `${baseUrl}?${params.toString()}`;
-    
+    //firewall 
     console.log(`📱 Sending QR scan SMS to parent ${mobile}: ${message}`);
 
     try {
@@ -176,11 +126,13 @@ class SMSService {
   }
 
   /**
-   * Send notification to mentor using Adeep.in API
+   * Send notification to mentor using DLT-approved template
+   * Template: Dear Mentor, your mentee {#var#}, {#var#} has applied for an Outpass with reason:{#var#}. Please review and take action by visiting the Outpass website. - VNR Vignana Jyothi Institute of Engineering and Technology.
+   * TID: 1607100000000358304
    */
-  async sendMentorNotification(mentorName: string, studentName: string, reason: string, mobile: string): Promise<boolean> {
+  async sendMentorNotification(mentorName: string, studentName: string, rollno: string, reason: string, mobile: string): Promise<boolean> {
     const baseUrl = 'https://textsms.adeep.in/api.php';
-    const message = `Alert: Your mentee ${studentName} has submitted an outpass request. Reason: ${reason}. Please review and approve/reject in the system. - VNRVJIET`;
+    const message = `Dear Mentor, your mentee ${studentName}, ${rollno} has applied for an Outpass with reason:${reason}. Please review and take action by visiting the Outpass website. - VNR Vignana Jyothi Institute of Engineering and Technology.`;
 
     const params = new URLSearchParams({
       username: 'VNRVJIET',
@@ -189,7 +141,7 @@ class SMSService {
       route: 'TRANS',
       mobile: mobile,
       text: message,
-      TID: '1607100000000353767',
+      TID: '1607100000000358304', // DLT template ID for mentor notification
       PEID: '1601100000000013508',
     });
 
@@ -218,80 +170,6 @@ class SMSService {
     }
   }
 
-  /**
-   * Send outpass request notification to mentor and parent
-   */
-  async notifyOutpassRequest(studentName: string, reason: string, mentorMobile: string, parentMobile: string): Promise<void> {
-    const mentorMessage = `Dear Mentor, your student ${studentName} has requested for a Gatepass due to ${reason} - VNRVJIET`;
-    const parentMessage = `Dear Parent, your ward ${studentName} has requested for a Gatepass due to ${reason} - VNRVJIET`;
-
-    // Send to mentor
-    if (mentorMobile) {
-      await this.sendSMS(mentorMobile, mentorMessage);
-    }
-
-    // Send to parent
-    if (parentMobile) {
-      await this.sendSMS(parentMobile, parentMessage);
-    }
-  }
-
-  /**
-   * Send QR scan notification to parent only
-   */
-  async notifyQRScanned(studentName: string, reason: string, parentMobile: string, scanTime: Date): Promise<void> {
-    const formatTime = scanTime.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-
-    const parentMessage = `Dear Parent, your ward ${studentName} has successfully exited the campus at ${formatTime} for ${reason} - VNRVJIET`;
-
-    if (parentMobile) {
-      await this.sendSMS(parentMobile, parentMessage);
-    }
-  }
-
-  /**
-   * Send approval notification to student and parent
-   */
-  async notifyOutpassApproval(studentName: string, reason: string, studentMobile: string, parentMobile: string): Promise<void> {
-    const studentMessage = `APPROVED! Your outpass request for ${reason} has been approved by your mentor. Check your dashboard for QR code. - VNRVJIET`;
-    const parentMessage = `OUTPASS APPROVED: Your ward ${studentName}'s outpass request has been approved. Purpose: ${reason}. They can now exit campus. - VNRVJIET`;
-
-    // Send to student
-    if (studentMobile) {
-      await this.sendSMS(studentMobile, studentMessage);
-    }
-
-    // Send to parent
-    if (parentMobile) {
-      await this.sendSMS(parentMobile, parentMessage);
-    }
-  }
-
-  /**
-   * Send rejection notification to student and parent
-   */
-  async notifyOutpassRejection(studentName: string, reason: string, studentMobile: string, parentMobile: string): Promise<void> {
-    const studentMessage = `REJECTED: Your outpass request for ${reason} has been rejected by your mentor. Contact your mentor for details. - VNRVJIET`;
-    const parentMessage = `OUTPASS REJECTED: Your ward ${studentName}'s outpass request has been rejected. Purpose: ${reason}. No campus exit permitted. - VNRVJIET`;
-
-    // Send to student
-    if (studentMobile) {
-      await this.sendSMS(studentMobile, studentMessage);
-    }
-
-    // Send to parent
-    if (parentMobile) {
-      await this.sendSMS(parentMobile, parentMessage);
-    }
-  }
 }
 
 export const smsService = new SMSService();

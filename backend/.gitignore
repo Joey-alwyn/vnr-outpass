@@ -5,3 +5,5 @@ uploads/
 .env
 
 /src/generated/prisma
+
+prisma/gatepass.db

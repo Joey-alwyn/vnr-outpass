@@ -94,7 +94,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
  */
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, name, role } = req.body;
+    const { email, name, role, mobile, parentMobile } = req.body;
 
     console.log(`🔍 Creating new user: ${email} with role ${role}...`);
 
@@ -114,6 +114,11 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid role specified' });
     }
 
+    // For students, parentMobile is required
+    if (role === 'STUDENT' && (!parentMobile || !parentMobile.trim())) {
+      return res.status(400).json({ error: 'Parent mobile number is required for students' });
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: email.toLowerCase() }
@@ -129,12 +134,16 @@ export const createUser = async (req: Request, res: Response) => {
         email: email.toLowerCase(),
         name: name.trim(),
         role: role as Role,
+        mobile: mobile ? mobile.trim() : null,
+        parentMobile: role === 'STUDENT' ? (parentMobile ? parentMobile.trim() : null) : null,
       },
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
+        mobile: true,
+        parentMobile: true,
         createdAt: true,
       },
     });
@@ -1928,7 +1937,7 @@ function detectColumns(data: any[]): {
       columnLower.includes('ht.no') || 
       columnLower.includes('htno') ||
       columnLower.includes('student data') ||
-      sampleValues.some(val => /^\d{2}071[A-Z]\d{4}$/.test(val?.toString()))
+      sampleValues.some(val => /^[A-Z0-9]{10}$/i.test(val?.toString().trim())) 
     )) {
       mapping.rollNumber = column;
       console.log(`✅ Detected Roll Number column: ${column}`);
@@ -2130,7 +2139,7 @@ export const bulkAddUsers = async (req: Request, res: Response) => {
             studentName === 'Name of the Student' ||
             rollNumber.includes('CSBS') || rollNumber.includes('entry') ||
             rollNumber.includes('Student Data') ||
-            !rollNumber.match(/^\d{2}071[A-Z]\d{4}$/)) { // Validate roll number format
+            !rollNumber.match(/^[A-Z0-9]{10}$/i)) {  // Validate roll number format
           console.log(`⚠️ Skipping row ${rowNumber}: Header row, invalid roll number, or missing student name (rollNumber: "${rollNumber}", studentName: "${studentName}")`);
           continue;
         }
