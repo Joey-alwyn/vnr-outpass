@@ -1937,7 +1937,7 @@ function detectColumns(data: any[]): {
       columnLower.includes('ht.no') || 
       columnLower.includes('htno') ||
       columnLower.includes('student data') ||
-      sampleValues.some(val => /^\d{2}071[A-Z]\d{4}$/.test(val?.toString()))
+      sampleValues.some(val => /^[A-Z0-9]{10}$/i.test(val?.toString().trim())) 
     )) {
       mapping.rollNumber = column;
       console.log(`✅ Detected Roll Number column: ${column}`);
@@ -2139,7 +2139,7 @@ export const bulkAddUsers = async (req: Request, res: Response) => {
             studentName === 'Name of the Student' ||
             rollNumber.includes('CSBS') || rollNumber.includes('entry') ||
             rollNumber.includes('Student Data') ||
-            !rollNumber.match(/^\d{2}071[A-Z]\d{4}$/)) { // Validate roll number format
+            !rollNumber.match(/^[A-Z0-9]{10}$/i)) {  // Validate roll number format
           console.log(`⚠️ Skipping row ${rowNumber}: Header row, invalid roll number, or missing student name (rollNumber: "${rollNumber}", studentName: "${studentName}")`);
           continue;
         }
