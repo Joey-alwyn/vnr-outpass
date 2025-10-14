@@ -1,15 +1,16 @@
 # VNR OutPass Application
 
-A full-stack Gate Pass Management System for VNRVJIET. Supports role-based access (Student, Mentor, HOD, Security), Google OAuth, QR-based validation, and secure backend using PostgreSQL with Prisma.
+A comprehensive Gate Pass Management System for VNRVJIET with role-based access control, admin dashboard, bulk user management, QR-based validation, and SMS notifications.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React + Vite + TypeScript
+- **Frontend:** React + Vite + TypeScript + Bootstrap
 - **Backend:** Express.js + TypeScript + Prisma
-- **Database:** PostgreSQL (hosted via NeonDB)
+- **Database:** SQLite (local development) with Prisma ORM
 - **Auth:** Google OAuth2 + JWT + HttpOnly Cookies
+- **Features:** QR Code generation, SMS integration, Excel bulk upload, Admin panel
 
 ---
 
@@ -33,19 +34,49 @@ npm install
 ### 3. Set Up Environment Variables
 
 Create a `.env` file in `backend/`:
-and in 'frontend/'
+```env
+# JWT Configuration
+JWT_SECRET=your-jwt-secret-key
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# SMS Configuration (Optional)
+SMS_API_KEY=your-sms-api-key
+SMS_SENDER_ID=your-sender-id
+
+# Server Configuration
+PORT=3000
+CORS_ORIGIN=http://localhost:5173
 ```
 
-### 4. Setup Prisma & Database
-Migrate & Seed
+Create a `.env` file in `frontend/`:
+```env
+# API Configuration
+VITE_API_BASE_URL=http://localhost:3000
 
+# Google OAuth Configuration
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+```
+```
 
+### 4. Setup Database & Prisma
+
+```bash
 cd backend
-npx prisma migrate dev --name init
+
+# Generate Prisma client
 npx prisma generate
-npx ts-node src/scripts/seed.ts
-✅ This seeds initial users + mentor mappings.
->added seed script to json so - 'npm run seed' should be enough instead of the last command
+
+# Run database migrations
+npx prisma migrate dev
+
+# Seed initial data (admin users, sample data)
+npm run seed
+```
+
+✅ This creates the SQLite database and seeds initial users + mentor mappings.
 
 🔄 How to Add New Mentor/Student Mappings
 Update src/scripts/seed.ts with only the new users and mappings like this:
@@ -106,72 +137,171 @@ Use `test.http` file in the root to:
 
 ---
 
-## 📁 Important Files Overview
+## 📁 Project Structure
 
 ```
 vnr-outpass/
 ├── backend/
 │   ├── src/
-│   │   ├── index.ts               # Entry point
-│   │   ├── config.ts              # ENV config
-│   │   ├── auth.ts                # JWT & Google auth
-│   │   ├── middlewares/
-│   │   │   └── auth.middleware.ts # isAuthenticated, requireRole
+│   │   ├── index.ts                    # Entry point
+│   │   ├── config.ts                   # ENV config
 │   │   ├── controllers/
-│   │   │   ├── student.controller.ts
-│   │   │   ├── mentor.controller.ts
-│   │   │   ├── security.controller.ts
-│   │   ├── routes/                # Role-wise API routes
-│   │   ├── utils/qr.util.ts       # QR generation/token logic
+│   │   │   ├── admin.controller.ts     # Admin panel, user management
+│   │   │   ├── auth.controller.ts      # Authentication
+│   │   │   ├── student.controller.ts   # Student operations
+│   │   │   ├── mentor.controller.ts    # Mentor operations
+│   │   │   └── security.controller.ts  # Security scanning
+│   │   ├── middlewares/
+│   │   │   ├── role.middleware.ts      # Role-based access control
+│   │   │   └── upload.middleware.ts    # File upload handling
+│   │   ├── routes/                     # API routes by role
+│   │   ├── utils/
+│   │   │   ├── qr.util.ts             # QR code generation
+│   │   │   ├── sms.util.ts            # SMS notifications
+│   │   │   ├── excel.util.ts          # Excel processing
+│   │   │   └── cron.ts                # Scheduled tasks
+│   │   └── scripts/
+│   │       └── seed.ts                # Database seeding
 │   ├── prisma/
-│   │   └── schema.prisma          # DB schema
-│   ├── test.http                  # Manual API tests
+│   │   ├── schema.prisma              # Database schema
+│   │   ├── gatepass.db                # SQLite database
+│   │   └── migrations/                # Database migrations
 │   └── package.json
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.tsx                # Role-based UI routing
-│   │   ├── components/            # Login, Layout, Forms
-│   │   ├── pages/                 # GatePassForm, MentorRequests, SecurityScan
-│   ├── vite.config.ts
+│   │   ├── App.tsx                     # Main app with routing
+│   │   ├── components/
+│   │   │   ├── admin/                  # Admin dashboard components
+│   │   │   │   ├── AdminDashboard.tsx
+│   │   │   │   ├── UserManagement.tsx
+│   │   │   │   ├── BulkAddModal.tsx
+│   │   │   │   └── OutpassReports.tsx
+│   │   │   ├── Layout.tsx              # Main layout
+│   │   │   └── RequireRole.tsx         # Role protection
+│   │   ├── pages/                      # Role-based pages
+│   │   │   ├── GatePassForm.tsx        # Student application
+│   │   │   ├── MentorRequests.tsx      # Mentor approval
+│   │   │   ├── SecurityScan.tsx        # QR scanning
+│   │   │   ├── AdminPanel.tsx          # Admin dashboard
+│   │   │   └── HodPanel.tsx            # HOD panel
+│   │   ├── auth/
+│   │   │   └── AuthContext.tsx         # Authentication context
+│   │   └── services/
+│   │       └── admin.service.ts        # Admin API calls
 │   └── package.json
 
 ```
-## Completed Features
-Google login (SSO)
+## ✅ Completed Features
 
-Role-based session handling
+### 🔐 Authentication & Authorization
+- Google OAuth2 integration (SSO)
+- Role-based access control (Student, Mentor, HOD, Security, Admin)
+- JWT token management with HttpOnly cookies
+- Protected routes and API endpoints
 
-Student: Apply gate pass
+### 👨‍💼 Admin Panel
+- **User Management**: Create, edit, delete users
+- **Bulk User Upload**: Excel file import with auto-mapping
+- **Student-Mentor Mapping**: Visual mapping interface
+- **Role Assignment**: Dynamic role management
+- **Dashboard Analytics**: User statistics and insights
 
-Mentor: Approve/Reject requests
+### 🎓 Student Features
+- Gate pass application form
+- Application status tracking
+- QR code download for approved passes
+- Mobile-responsive interface
 
-QR token generation on approval
+### 👨‍🏫 Mentor Features
+- View pending student requests
+- Approve/reject gate pass applications  
+- Student-mentor relationship management
+- Notification system for new requests
 
-Reusable test.http for API testing
+### 🛡️ Security Features
+- QR code scanning interface
+- Pass validation and verification
+- Invalid pass detection
+- Security guard dashboard
 
-## 🔜 Pending To-Do
+### 📊 HOD Features
+- Departmental oversight
+- Advanced reporting and analytics
+- Bulk approval capabilities
+- Administrative controls
 
-| Task                                                         | Status         |
-| ------------------------------------------------------------ | -------------- |
-| Security QR scan interface + logic                           | ⏳ In Progress |
-| Mark QR code as invalid after scan                           | ❌ Not done yet |
-| Notify mentor when student applies (email/WhatsApp optional) | ❌ Pending      |
-| HOD escalation flow (optional)                               | ❌ Pending      |
-| Prevent QR reuse at gate                                     | ❌ Pending      |
-| Fully dynamic CSV import for student–mentor mapping          | 🔜 Future      |
-| Better error feedback on role issues                         | 🔜 Future      |
+### 🔧 Technical Features
+- SQLite database with Prisma ORM
+- SMS notification integration
+- Excel file processing and validation
+- QR code generation and validation
+- Responsive mobile design
+- Real-time status updates
+
+## 🔜 Future Enhancements
+
+| Feature                                    | Priority | Status      |
+| ------------------------------------------ | -------- | ----------- |
+| **Email Notifications**                    | High     | ⏳ Planned  |
+| **Advanced Analytics Dashboard**           | Medium   | ⏳ Planned  |
+| **Mobile App (React Native)**             | Medium   | 🔜 Future   |
+| **Batch QR Operations**                   | Low      | 🔜 Future   |
+| **Integration with College ERP**          | Low      | 🔜 Future   |
+| **Automated Reports Generation**          | Medium   | 🔜 Future   |
+| **Multi-language Support**               | Low      | 🔜 Future   |
+
+## 🚀 Deployment
+
+### Backend Deployment
+```bash
+# Build for production
+npm run build
+
+# Start production server  
+npm start
+```
+
+### Frontend Deployment
+```bash
+# Build for production
+npm run build
+
+# Serve static files
+# Deploy dist/ folder to your hosting service
+```
+
+### Database Backup
+```bash
+# Backup SQLite database
+cp prisma/gatepass.db backup/gatepass_backup_$(date +%Y%m%d).db
+
+# Restore from backup
+cp backup/gatepass_backup_YYYYMMDD.db prisma/gatepass.db
+```
 
 
-## 👥 Seeded Accounts
+## 👥 Default Seeded Accounts
 
-| Role     | Email                    | Notes         |
-| -------- | ------------------------ | ------------- |
-| Mentor   | [aveenonights@gmail.com] | Sample Mentor |
-| Student  | [22071a0508@vnrvjiet.in] | Sample User   |
-| Student  | [22071a0504@vnrvjiet.in] | Sample User   |
-| Student  | [22071a0555@vnrvjiet.in] | Sample User   |
-| Security | [guard@vnrsecurity.com]  | Gate Scanner  |
+| Role     | Email                        | Password/Access | Notes                    |
+| -------- | ---------------------------- | --------------- | ------------------------ |
+| **Admin**    | `admin@vnrvjiet.in`          | Google OAuth    | Full system access       |
+| **HOD**      | `hod@vnrvjiet.in`            | Google OAuth    | Department management    |
+| **Mentor**   | `mentor@vnrvjiet.in`         | Google OAuth    | Student supervision      |
+| **Security** | `security@vnrvjiet.in`       | Google OAuth    | Gate pass verification   |
+| **Student**  | `22071a0508@vnrvjiet.in`     | Google OAuth    | Sample student account   |
+
+### 🧪 Testing Workflow
+
+1. **Admin Login**: Access admin panel → User Management → Bulk Upload
+2. **Student Login**: Apply for gate pass → Wait for mentor approval
+3. **Mentor Login**: Review pending requests → Approve/reject applications  
+4. **Security Login**: Scan QR codes → Verify gate pass validity
+
+### 📱 Mobile Testing
+- All interfaces are mobile-responsive
+- Test on different screen sizes
+- QR scanning works on mobile devices
 
 ---
 
