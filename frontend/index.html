@@ -5,6 +5,15 @@
     <link rel="icon" type="image/svg+xml" href="/qrcode-solid.svg" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/client;
+      style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style;
+      connect-src 'self' https://authv2.vjstartup.com https://accounts.google.com;
+      img-src 'self' data: https:;
+      font-src 'self' data:;
+      frame-src 'self' https://accounts.google.com;
+    ">
     <title>VNR Outpass</title>
   </head>
   <body>
