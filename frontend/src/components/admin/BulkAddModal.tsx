@@ -63,6 +63,13 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ show, onHide, onUsersAdded 
     formData.append('excelFile', file);
 
     try {
+      console.log('🔍 BulkAddModal: Starting Excel file upload', {
+        filename: file.name,
+        filesize: file.size,
+        filetype: file.type,
+        endpoint: '/admin/bulk-add-users'
+      });
+      
       toast.loading('Processing Excel file...', {
         description: 'Creating students, mentors, and mappings. This may take a few moments.'
       });
@@ -73,6 +80,17 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ show, onHide, onUsersAdded 
         }
       });
 
+      console.log('✅ BulkAddModal: Excel file processed successfully', {
+        success: response.data.success,
+        studentsCreated: response.data.studentsCreated,
+        studentsUpdated: response.data.studentsUpdated,
+        mentorsCreated: response.data.mentorsCreated,
+        mappingsCreated: response.data.mappingsCreated,
+        warnings: response.data.warnings?.length || 0,
+        unmappedStudents: response.data.studentsWithoutMentors?.length || 0,
+        errors: response.data.errors?.length || 0
+      });
+
       toast.dismiss();
       
       if (response.data.success) {
@@ -80,6 +98,11 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ show, onHide, onUsersAdded 
         
         // Show different toast based on whether there are warnings
         if (response.data.studentsWithoutMentors?.length > 0) {
+          console.warn('⚠️ BulkAddModal: Some students without mentors', {
+            count: response.data.studentsWithoutMentors.length,
+            details: response.data.studentsWithoutMentors
+          });
+          
           toast.warning('Upload Completed with Warnings', {
             description: `${response.data.studentsCreated} students processed. ${response.data.studentsWithoutMentors.length} students need mentor assignment.`
           });
@@ -92,11 +115,25 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ show, onHide, onUsersAdded 
         onUsersAdded();
       } else {
         setResult(response.data);
+        console.error('❌ BulkAddModal: Excel file processing failed', {
+          errors: response.data.errors,
+          detectedColumns: response.data.detectedColumns
+        });
+        
         toast.error('Upload Failed', {
           description: 'Failed to process the Excel file. Please check the format and try again.'
         });
       }
     } catch (error: any) {
+      console.error('❌ BulkAddModal: Error during file upload', {
+        filename: file.name,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        errors: error.response?.data?.errors,
+        endpoint: '/admin/bulk-add-users',
+        error: error
+      });
+      
       toast.dismiss();
       toast.error('Upload Failed', {
         description: error.response?.data?.message || 'Failed to process Excel file. Please try again.'
@@ -128,8 +165,19 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ show, onHide, onUsersAdded 
     }
 
     setUndoLoading(true);
+    
     try {
+      console.log('ℹ️ BulkAddModal: Starting undo of bulk imports', {
+        endpoint: '/admin/undo-bulk-imports'
+      });
+      
       const response = await api.post('/admin/undo-bulk-imports');
+      
+      console.log('✅ BulkAddModal: Bulk imports undone successfully', {
+        deletedStudents: response.data.deletedStudents,
+        deletedMentors: response.data.deletedMentors,
+        deletedMappings: response.data.deletedMappings
+      });
       
       if (response.data.success) {
         toast.success('Bulk Import Undone', {
@@ -140,14 +188,26 @@ const BulkAddModal: React.FC<BulkAddModalProps> = ({ show, onHide, onUsersAdded 
         resetForm();
         onUsersAdded(); // Refresh the user list
       } else {
+        console.error('❌ BulkAddModal: Undo operation failed', {
+          success: false,
+          error: response.data.error
+        });
+        
         toast.error('Undo Failed', {
           description: response.data.error || 'Failed to undo bulk imports'
         });
       }
     } catch (error: any) {
-      console.error('Error undoing bulk imports:', error);
+      console.error('❌ BulkAddModal: Error during undo operation', {
+        status: error.response?.status,
+        message: error.response?.data?.error || error.message,
+        endpoint: '/admin/undo-bulk-imports',
+        error: error
+      });
       
       if (error.response?.status === 403) {
+        console.warn('⚠️ BulkAddModal: Undo not available - development mode only');
+        
         toast.error('Not Available', {
           description: 'Undo bulk imports is only available in development mode.'
         });

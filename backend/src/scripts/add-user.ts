@@ -7,7 +7,7 @@ import { Role } from '@prisma/client';
  */
 async function addUser() {
   try {
-    const rollNo = '22071A0508';
+    const rollNo = '24071A0509';
     const email = `${rollNo}@vnrvjiet.in`;
     
     console.log(`🔄 Adding user with roll number: ${rollNo}`);

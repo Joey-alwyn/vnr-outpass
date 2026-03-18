@@ -59,9 +59,18 @@ const StudentMentorMapping: React.FC<StudentMentorMappingProps> = ({ onRoleChang
     try {
       setLoading(true);
       
+      console.log('🔍 StudentMentorMapping: Fetching mappings from /admin/student-mentor-mappings');
+      
       // Fetch student-mentor mappings from the correct admin endpoint
       const response = await api.get<MappingData>('/admin/student-mentor-mappings');
       const { mappings, studentsWithoutMentors, allMentors, summary } = response.data;
+      
+      console.log('✅ StudentMentorMapping: Mappings fetched successfully', {
+        totalMappings: summary.totalMappings,
+        unmappedStudents: summary.unmappedStudents,
+        totalMentors: summary.totalMentors,
+        endpoint: '/admin/student-mentor-mappings'
+      });
       
       setMappings(mappings);
       setUnmappedStudents(studentsWithoutMentors);
@@ -75,8 +84,19 @@ const StudentMentorMapping: React.FC<StudentMentorMappingProps> = ({ onRoleChang
       });
       setSelectedStudentMappings(currentMappings);
       
-    } catch (error) {
-      console.error('Failed to fetch student-mentor mappings:', error);
+      if (studentsWithoutMentors.length > 0) {
+        console.warn('⚠️ StudentMentorMapping: Found students without mentors', {
+          count: studentsWithoutMentors.length
+        });
+      }
+      
+    } catch (error: any) {
+      console.error('❌ StudentMentorMapping: Failed to fetch mappings', {
+        endpoint: '/admin/student-mentor-mappings',
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error
+      });
       toast.error('Failed to load student-mentor mappings');
     } finally {
       setLoading(false);
@@ -87,7 +107,20 @@ const StudentMentorMapping: React.FC<StudentMentorMappingProps> = ({ onRoleChang
     try {
       const payload = mentorId ? { mentorId } : {};
       
+      console.log('ℹ️ StudentMentorMapping: Updating student-mentor mapping', {
+        studentId: studentId,
+        mentorId: mentorId,
+        action: mentorId ? 'assign' : 'remove',
+        endpoint: `/admin/student-mentor-mappings/${studentId}`
+      });
+      
       await api.put(`/admin/student-mentor-mappings/${studentId}`, payload);
+      
+      console.log('✅ StudentMentorMapping: Mapping updated successfully', {
+        studentId: studentId,
+        mentorId: mentorId,
+        action: mentorId ? 'assign' : 'remove'
+      });
       
       // Update local state
       if (mentorId) {
@@ -111,8 +144,15 @@ const StudentMentorMapping: React.FC<StudentMentorMappingProps> = ({ onRoleChang
       if (onRoleChange) {
         onRoleChange();
       }
-    } catch (error) {
-      console.error('Failed to update student-mentor mapping:', error);
+    } catch (error: any) {
+      console.error('❌ StudentMentorMapping: Failed to update mapping', {
+        studentId: studentId,
+        mentorId: mentorId,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: `/admin/student-mentor-mappings/${studentId}`,
+        error: error
+      });
       toast.error('Failed to update mapping');
     }
   };

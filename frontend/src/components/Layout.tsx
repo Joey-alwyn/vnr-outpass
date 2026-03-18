@@ -106,7 +106,16 @@ export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
                   </div>
                   <button
                     className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
-                    onClick={logout}
+                    onClick={() => {
+                      console.log('ℹ️ Layout: User initiated logout');
+                      logout().catch((error: any) => {
+                        console.error('❌ Layout: Logout failed', {
+                          status: error.response?.status,
+                          message: error.response?.data?.message || error.message,
+                          error: error
+                        });
+                      });
+                    }}
                   >
                     <LogOut size={16} />
                     <span className="d-none d-lg-inline">Logout</span>
@@ -165,7 +174,14 @@ export const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
                   <div
                     className="mobile-nav-link logout-link"
                     onClick={() => {
-                      logout();
+                      console.log('ℹ️ Layout: User initiated logout from mobile menu');
+                      logout().catch((error: any) => {
+                        console.error('❌ Layout: Logout failed from mobile menu', {
+                          status: error.response?.status,
+                          message: error.response?.data?.message || error.message,
+                          error: error
+                        });
+                      });
                       setIsMobileMenuOpen(false);
                     }}
                   >

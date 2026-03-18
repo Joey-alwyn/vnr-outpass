@@ -32,15 +32,32 @@ const StudentStatus: React.FC = () => {
   useEffect(() => {
     const fetchPasses = async () => {
       try {
+        console.log('🔍 StudentStatus: Fetching gate passes', {
+          endpoint: '/student/status'
+        });
+        
         const res = await api.get<{ passes: Pass[] }>('/student/status');
+        
+        console.log('✅ StudentStatus: Gate passes fetched successfully', {
+          count: res.data.passes.length,
+          endpoint: '/student/status'
+        });
+        
         setPasses(res.data.passes);
         if (res.data.passes.length === 0) {
+          console.info('ℹ️ StudentStatus: No gate passes found for student');
           toast.info('No Gate Passes Found', {
             description: 'You haven\'t applied for any gate passes yet.'
           });
         }
-      } catch (e) {
-        const errorMessage = (e as any).response?.data?.error || 'Failed to load passes';
+      } catch (e: any) {
+        const errorMessage = e.response?.data?.error || 'Failed to load passes';
+        console.error('❌ StudentStatus: Failed to fetch gate passes', {
+          endpoint: '/student/status',
+          status: e.response?.status,
+          message: e.response?.data?.error || e.message,
+          error: e
+        });
         setError(errorMessage);
         toast.error('Failed to Load Passes', {
           description: errorMessage
@@ -50,10 +67,24 @@ const StudentStatus: React.FC = () => {
 
     const fetchMentor = async () => {
       try {
+        console.log('🔍 StudentStatus: Fetching mentor information', {
+          endpoint: '/student/mentor'
+        });
+        
         const res = await api.get<{ mentor: Mentor }>('/student/mentor');
+        
+        console.log('✅ StudentStatus: Mentor information fetched successfully', {
+          mentorName: res.data.mentor?.name,
+          endpoint: '/student/mentor'
+        });
+        
         setMentor(res.data.mentor);
-      } catch (err) {
-        console.error('Failed to fetch mentor info:', err);
+      } catch (err: any) {
+        console.warn('⚠️ StudentStatus: Failed to fetch mentor information (non-critical)', {
+          endpoint: '/student/mentor',
+          status: err.response?.status,
+          message: err.response?.data?.message || err.message
+        });
         // Don't show toast for mentor fetch failure, it's not critical
       }
     };

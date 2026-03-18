@@ -11,25 +11,27 @@ export const RequireRole: React.FC<{ roles: Role[]; children: ReactNode }> = ({ 
   const isDevelopment = import.meta.env.VITE_NODE_ENV === 'development' || 
                        (import.meta.env.VITE_NODE_ENV !== 'production' && import.meta.env.DEV);
 
-  console.log('🔍 RequireRole: Checking route access...', {
-    loading,
+  console.log('🔍 RequireRole: Checking route access', {
+    loading: loading,
     userExists: !!user,
-    userRole: user?.role,
+    userRole: user?.role || 'none',
     requiredRoles: roles,
-    isDevelopment,
-    'VITE_NODE_ENV': import.meta.env.VITE_NODE_ENV,
-    'import.meta.env.DEV': import.meta.env.DEV,
+    isDevelopment: isDevelopment,
     currentPath: window.location.pathname,
   });
 
   // Development bypass for ALL routes - allow access without authentication or role checks
   if (isDevelopment) {
-    console.log('🔧 DEVELOPMENT MODE: Bypassing ALL role requirements for route:', window.location.pathname);
+    console.warn('⚠️ RequireRole: DEVELOPMENT MODE ACTIVE - Bypassing all role requirements', {
+      currentPath: window.location.pathname,
+      requiredRoles: roles,
+      reason: 'Development environment detected'
+    });
     return <>{children}</>;
   }
 
   if (loading) {
-    console.log('⏳ RequireRole: Loading user data...');
+    console.log('⏳ RequireRole: Loading user authentication data...');
     return <div className="d-flex justify-content-center align-items-center min-vh-100">
       <div className="spinner-border text-primary" role="status">
         <span className="visually-hidden">Loading...</span>
@@ -38,20 +40,39 @@ export const RequireRole: React.FC<{ roles: Role[]; children: ReactNode }> = ({ 
   }
 
   if (!user) {
-    console.log('❌ RequireRole: User not authenticated. Redirecting to home.');
+    console.error('❌ RequireRole: User not authenticated', {
+      currentPath: window.location.pathname,
+      requiredRoles: roles,
+      redirectTo: '/'
+    });
     return <Navigate to="/" replace />;
   }
 
   if (!user.role) {
-    console.log('❌ RequireRole: User has no role assigned. Redirecting to contact admin.');
+    console.error('❌ RequireRole: User authenticated but no role assigned', {
+      userEmail: user.email,
+      currentPath: window.location.pathname,
+      requiredRoles: roles,
+      redirectTo: '/contact-admin'
+    });
     return <Navigate to="/contact-admin" replace />;
   }
 
   if (!roles.includes(user.role)) {
-    console.log(`❌ RequireRole: Access denied. User role: ${user.role}, Required roles: ${roles.join(', ')}`);
+    console.error('❌ RequireRole: Access denied - insufficient permissions', {
+      userRole: user.role,
+      requiredRoles: roles,
+      userEmail: user.email,
+      currentPath: window.location.pathname,
+      redirectTo: '/'
+    });
     return <Navigate to="/" replace />;
   }
 
-  console.log(`✅ RequireRole: Access granted. User role: ${user.role}`);
+  console.log('✅ RequireRole: Access granted', {
+    userRole: user.role,
+    requiredRoles: roles,
+    currentPath: window.location.pathname
+  });
   return <>{children}</>;
 };

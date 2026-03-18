@@ -46,12 +46,25 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
   const fetchEventLogs = async () => {
     try {
       setLoading(true);
+      
+      console.log('🔍 OutpassReports: Fetching event logs', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        endpoint: '/admin/outpass-reports'
+      });
+      
       const response = await api.get('/admin/outpass-reports', {
         params: {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
           limit: 100
         }
+      });
+      
+      console.log('✅ OutpassReports: Event logs fetched successfully', {
+        count: response.data.outpasses?.length || 0,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
       });
       
       // Transform outpass data into event format for the timeline
@@ -82,7 +95,16 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
       }));
       
       setEvents(transformedEvents);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ OutpassReports: Failed to fetch event logs', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: '/admin/outpass-reports',
+        error: error
+      });
+      
       toast.error('Failed to Load Event Logs', {
         description: 'Unable to fetch outpass event logs.'
       });
@@ -139,6 +161,12 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
 
   const exportEventLogs = async () => {
     try {
+      console.log('ℹ️ OutpassReports: Starting event logs export', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        endpoint: '/admin/export-event-logs'
+      });
+      
       toast.loading('Preparing event logs export...');
       const response = await api.post('/admin/export-event-logs', {
         startDate: dateRange.startDate,
@@ -157,11 +185,26 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
+      console.log('✅ OutpassReports: Event logs exported successfully', {
+        filename: link.download,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
+      });
+
       toast.dismiss();
       toast.success('Event Logs Exported', {
         description: 'Event logs have been successfully exported.'
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ OutpassReports: Failed to export event logs', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: '/admin/export-event-logs',
+        error: error
+      });
+      
       toast.dismiss();
       toast.error('Export Failed', {
         description: 'Unable to export event logs. Please try again.'
@@ -171,6 +214,12 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
 
   const exportApprovedScannedReport = async () => {
     try {
+      console.log('ℹ️ OutpassReports: Starting approved/scanned report export', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        endpoint: '/admin/download-approved-scanned-report'
+      });
+      
       toast.loading('Preparing scanned passes report...');
       const response = await api.post('/admin/download-approved-scanned-report', {
         startDate: dateRange.startDate,
@@ -188,11 +237,26 @@ const OutpassReports: React.FC<OutpassReportsProps> = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
+      console.log('✅ OutpassReports: Approved/scanned report exported successfully', {
+        filename: link.download,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate
+      });
+
       toast.dismiss();
       toast.success('Scanned Passes Report Exported', {
         description: 'Report with scanned outpasses has been successfully exported.'
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ OutpassReports: Failed to export approved/scanned report', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: '/admin/download-approved-scanned-report',
+        error: error
+      });
+      
       toast.dismiss();
       toast.error('Export Failed', {
         description: 'Unable to export scanned passes report. Please try again.'

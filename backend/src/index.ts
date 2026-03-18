@@ -23,6 +23,7 @@ console.log('🕐 Cron jobs started: Keep-alive and Auto-rejection');
 const app = express();
 
 const allowedOrigins = [
+  'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:3112',
   'https://dev-outpass.vjstartup.com',

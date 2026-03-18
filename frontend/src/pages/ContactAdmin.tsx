@@ -43,9 +43,19 @@ const ContactAdmin: React.FC = () => {
 
   const handleRoleRequest = async () => {
     if (!selectedRole) {
+      console.warn('⚠️ ContactAdmin: Role selection validation failed - no role selected', {
+        component: 'ContactAdmin',
+        selectedRole: selectedRole
+      });
       toast.error('Please select a role');
       return;
     }
+
+    console.log('ℹ️ ContactAdmin: Submitting role request', {
+      requestedRole: selectedRole,
+      endpoint: '/admin/role-request',
+      reasonLength: reason.trim().length
+    });
 
     setIsSubmitting(true);
     try {
@@ -54,16 +64,26 @@ const ContactAdmin: React.FC = () => {
         reason: reason.trim()
       });
 
+      console.log('✅ ContactAdmin: Role request submitted successfully', {
+        requestedRole: selectedRole,
+        endpoint: '/admin/role-request'
+      });
+
       setRequestSubmitted(true);
       toast.success('Role request submitted successfully! An admin will review your request.');
       
       // Poll for role updates every 5 seconds
       const pollInterval = setInterval(async () => {
         try {
+          console.log('ℹ️ ContactAdmin: Polling for role update from server');
           // Refresh user data to check if role was assigned
           window.location.reload();
-        } catch (error) {
-          console.error('Error polling for role update:', error);
+        } catch (error: any) {
+          console.error('❌ ContactAdmin: Error during polling for role update', {
+            status: error.response?.status,
+            message: error.message,
+            error: error
+          });
         }
       }, 5000);
 
@@ -73,8 +93,19 @@ const ContactAdmin: React.FC = () => {
       }, 120000);
 
     } catch (error: any) {
-      console.error('Error submitting role request:', error);
+      console.error('❌ ContactAdmin: Failed to submit role request', {
+        requestedRole: selectedRole,
+        status: error.response?.status,
+        message: error.response?.data?.error || error.message,
+        endpoint: '/admin/role-request',
+        error: error
+      });
+      
       if (error.response?.data?.error === 'You already have a pending role request') {
+        console.warn('⚠️ ContactAdmin: User has duplicate pending role request', {
+          requestedRole: selectedRole,
+          email: user?.email
+        });
         toast.error('You already have a pending role request. Please wait for admin approval.');
         setRequestSubmitted(true);
       } else {

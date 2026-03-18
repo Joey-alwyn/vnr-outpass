@@ -26,13 +26,24 @@ const MentorRequests: React.FC = () => {
     try {
       const res = await api.get('/mentor/requests')
       setReqs(res.data.requests)
+      console.log('✅ MentorRequests: Requests fetched successfully', {
+        count: res.data.requests.length,
+        endpoint: '/mentor/requests'
+      });
       if (res.data.requests.length === 0) {
+        console.info('ℹ️ MentorRequests: No pending requests found');
         toast.info('No pending requests', {
           description: 'All gate pass requests have been processed.'
         });
       }
     } catch (e: any) {
       const errorMessage = e.response?.data?.error || 'Failed to load requests';
+      console.error('❌ MentorRequests: Failed to fetch requests', {
+        endpoint: '/mentor/requests',
+        status: e.response?.status,
+        message: e.response?.data?.error || e.message,
+        error: e
+      });
       setError(errorMessage);
       toast.error('Failed to Load Requests', {
         description: errorMessage
@@ -49,7 +60,19 @@ const MentorRequests: React.FC = () => {
       setError(null)
       toast.loading(`${action === 'APPROVE' ? 'Approving' : 'Rejecting'} gate pass request...`);
       
+      console.info('ℹ️ MentorRequests: Processing request action', {
+        requestId: id,
+        action: action,
+        endpoint: '/mentor/respond'
+      });
+      
       const res = await api.post('/mentor/respond', { gatePassId: id, action })
+
+      console.log('✅ MentorRequests: Request action completed successfully', {
+        requestId: id,
+        action: action,
+        qrGenerated: !!res.data.qr
+      });
 
       toast.dismiss();
       
@@ -65,6 +88,14 @@ const MentorRequests: React.FC = () => {
 
       setReqs(prev => prev.filter(r => r.id !== id))
     } catch (e: any) {
+      console.error('❌ MentorRequests: Failed to process request action', {
+        requestId: id,
+        action: action,
+        endpoint: '/mentor/respond',
+        status: e.response?.status,
+        message: e.response?.data?.error || e.message,
+        error: e
+      });
       toast.dismiss();
       const errorMessage = e.response?.data?.error || 'Failed to respond';
       setError(errorMessage);

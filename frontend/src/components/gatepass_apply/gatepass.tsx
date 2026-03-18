@@ -24,6 +24,11 @@ const GatePassForm: React.FC = () => {
     e.preventDefault()
     if (!data.reason.trim()) {
       const errorMessage = 'Please provide a reason for your gate pass request.';
+      console.warn('⚠️ GatePass: Form validation failed - empty reason', {
+        component: 'GatePassForm',
+        field: 'reason',
+        value: data.reason
+      });
       setError(errorMessage);
       toast.error('Validation Error', {
         description: errorMessage
@@ -31,17 +36,37 @@ const GatePassForm: React.FC = () => {
       return
     }
     
+    console.log('ℹ️ GatePass: Submitting gate pass application', {
+      endpoint: '/student/apply',
+      reasonLength: data.reason.length,
+      component: 'GatePassForm'
+    });
+    
     setLoading(true)
     setError(null)
     try {
       toast.loading('Submitting your gate pass application...');
       await api.post('/student/apply', data)
+      
+      console.log('✅ GatePass: Gate pass application submitted successfully', {
+        endpoint: '/student/apply',
+        reasonLength: data.reason.length
+      });
+      
       toast.dismiss();
       toast.success('Application Submitted!', {
         description: 'Your gate pass request has been submitted successfully and is now pending approval.'
       });
       nav('/student/status')
     } catch (e: any) {
+      console.error('❌ GatePass: Failed to submit gate pass application', {
+        endpoint: '/student/apply',
+        status: e.response?.status,
+        message: e.response?.data?.error || e.message,
+        reasonLength: data.reason.length,
+        error: e
+      });
+      
       toast.dismiss();
       const errorMessage = e.response?.data?.error || 'Failed to submit application. Please try again.';
       setError(errorMessage);

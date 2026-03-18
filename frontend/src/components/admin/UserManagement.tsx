@@ -116,10 +116,28 @@ const UserManagement: React.FC<UserManagementProps> = ({
     setLoadingDependencies(true);
     setUserDependencies(null);
     try {
+      console.log('🔍 UserManagement: Fetching dependencies for user', {
+        userId: user.id,
+        email: user.email,
+        endpoint: `/admin/users/${user.id}/dependencies`
+      });
+      
       const response = await api.get(`/admin/users/${user.id}/dependencies`);
+      
+      console.log('✅ UserManagement: User dependencies fetched successfully', {
+        userId: user.id,
+        dependencies: response.data
+      });
+      
       setUserDependencies(response.data);
-    } catch (error) {
-      console.error('Failed to fetch user dependencies:', error);
+    } catch (error: any) {
+      console.error('❌ UserManagement: Failed to fetch user dependencies', {
+        userId: user.id,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: `/admin/users/${user.id}/dependencies`,
+        error: error
+      });
       toast.error('Failed to check user dependencies');
       setUserDependencies(null);
     } finally {
@@ -133,13 +151,32 @@ const UserManagement: React.FC<UserManagementProps> = ({
     const hasNoDependencies = !userDependencies || userDependencies.summary.total === 0;
     
     try {
+      console.log('ℹ️ UserManagement: Confirming user deletion', {
+        userId: userToDelete.id,
+        email: userToDelete.email,
+        hasNoDependencies: hasNoDependencies,
+        force: !hasNoDependencies
+      });
+      
       await onDeleteUser(userToDelete.id, !hasNoDependencies);
+      
+      console.log('✅ UserManagement: User deleted successfully', {
+        userId: userToDelete.id,
+        email: userToDelete.email
+      });
+      
       setUserToDelete(null);
       setUserDependencies(null);
       setDeleteDialogOpen(false);
       toast.success('User deleted successfully');
-    } catch (error) {
-      console.error('Failed to delete user:', error);
+    } catch (error: any) {
+      console.error('❌ UserManagement: Failed to delete user', {
+        userId: userToDelete?.id,
+        status: error.response?.status,
+        message: error.response?.data?.error || error.message,
+        force: !hasNoDependencies,
+        error: error
+      });
       toast.error('Failed to delete user');
     }
   };

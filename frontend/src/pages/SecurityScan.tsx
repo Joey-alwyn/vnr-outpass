@@ -10,7 +10,17 @@ const SecurityScan: React.FC = () => {
     // We only process a scan if we aren't already loading, and don't have data or an error
     onDecodeResult: (result) => {
       if (!isLoading && !data && !error) {
+        console.log('✅ SecurityScan: QR code detected by camera', {
+          qrTextLength: result.getText().length,
+          endpoint: 'useZxing.onDecodeResult'
+        });
         processScan(result.getText());
+      } else {
+        console.log('ℹ️ SecurityScan: QR code detected but scanner is busy', {
+          isLoading: isLoading,
+          hasData: !!data,
+          hasError: !!error
+        });
       }
     },
     // Declaratively pause the scanner when we have a result or an error
@@ -18,9 +28,16 @@ const SecurityScan: React.FC = () => {
   });
 
   const handleManualEntry = () => {
+    console.log('ℹ️ SecurityScan: User initiated manual QR code entry');
+    
     const qrUrl = prompt('Enter QR code URL manually:');
     if (qrUrl && qrUrl.trim()) {
+      console.log('ℹ️ SecurityScan: Processing manually entered QR code', {
+        urlLength: qrUrl.trim().length
+      });
       processScan(qrUrl.trim());
+    } else {
+      console.log('ℹ️ SecurityScan: Manual entry cancelled or empty');
     }
   };
 

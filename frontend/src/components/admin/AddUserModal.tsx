@@ -32,11 +32,23 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ show, onHide, onUserAdded }
     
     // Validate that parent mobile is provided for students
     if (formData.role === 'STUDENT' && !formData.parentMobile.trim()) {
+      console.warn('⚠️ AddUserModal: Validation failed - student without parent mobile', {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role
+      });
       toast.error('Validation Error', {
         description: 'Parent mobile number is required for students.'
       });
       return;
     }
+    
+    console.log('ℹ️ AddUserModal: Submitting new user creation', {
+      name: formData.name,
+      email: formData.email,
+      role: formData.role,
+      endpoint: '/admin/users'
+    });
     
     setLoading(true);
 
@@ -49,6 +61,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ show, onHide, onUserAdded }
         : { ...formData, parentMobile: '' };
         
       await api.post('/admin/users', submitData);
+      
+      console.log('✅ AddUserModal: User created successfully', {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role
+      });
       
       toast.dismiss();
       toast.success('User Created', {
@@ -67,6 +85,16 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ show, onHide, onUserAdded }
       onUserAdded();
       onHide();
     } catch (error: any) {
+      console.error('❌ AddUserModal: Failed to create user', {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: '/admin/users',
+        error: error
+      });
+      
       toast.dismiss();
       toast.error('Failed to Create User', {
         description: error.response?.data?.message || 'Unable to create user. Please try again.'

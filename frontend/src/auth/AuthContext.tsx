@@ -69,7 +69,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           console.log('✅ Complete user profile set with role:', roleResponse.data.role);
         } catch (roleError: any) {
-          console.error('❌ Failed to fetch role from backend:', roleError);
+          console.error('❌ AuthContext: Failed to fetch role from backend (4000)', {
+            status: roleError.response?.status,
+            message: roleError.response?.data?.message || roleError.message,
+            email: authUser.email,
+            error: roleError
+          });
           
           // If role fetch fails, still set basic user data without role
           setUser({
@@ -81,14 +86,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             family_name: authUser.family_name,
           });
           
-          console.log('⚠️ User set without role due to backend error');
+          console.warn('⚠️ AuthContext: User set without role due to backend error for email:', authUser.email);
         }
       } else {
         console.log('⚠️ User not logged in or no user data from auth server');
         setUser(null);
       }
-    } catch (error) {
-      console.error('❌ Auth check failed:', error);
+    } catch (error: any) {
+      console.error('❌ AuthContext: Auth check failed during initialization', {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error
+      });
       setUser(null);
     } finally {
       setLoading(false);
@@ -114,7 +123,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
       }
     } catch (error: any) {
-      console.error('❌ Login failed:', error);
+      console.error('❌ AuthContext: Login failed during OAuth flow', {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        email: error.response?.data?.email,
+        error: error
+      });
       if (error.response?.status === 403) {
         toast.error('Access Denied', {
           description: 'Your email is not recognized for this system.'
@@ -140,8 +154,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.success('Logged Out Successfully', {
         description: 'You have been safely logged out.'
       });
-    } catch (error) {
-      console.error('❌ Logout error:', error);
+    } catch (error: any) {
+      console.error('❌ AuthContext: Logout failed', {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error
+      });
       toast.error('Logout Error', {
         description: 'There was an issue logging you out, but you have been signed out locally.'
       });

@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 import { prisma } from '../prisma/client';
+import { AUTH_SERVER_URL } from '../config';
 
 // Create axios instance for auth server communication
 const authServerApi = axios.create({
-  baseURL: 'http://localhost:3115',
+  baseURL: AUTH_SERVER_URL,
   withCredentials: true,
   timeout: 5000,
 });

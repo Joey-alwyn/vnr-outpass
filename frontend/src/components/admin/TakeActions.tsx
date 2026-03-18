@@ -89,20 +89,56 @@ const TakeActions: React.FC<TakeActionsProps> = ({
 
   const fetchPendingActions = async () => {
     try {
+      console.log('🔍 TakeActions: Fetching pending actions', {
+        endpoint: '/admin/pending-actions'
+      });
+      
       const response = await api.get('/admin/pending-actions');
+      
+      console.log('✅ TakeActions: Pending actions fetched successfully', {
+        count: response.data.actions?.length || 0,
+        endpoint: '/admin/pending-actions'
+      });
+      
       setPendingActions(response.data.actions || []);
-    } catch (error) {
-      console.error('Error fetching pending actions:', error);
+    } catch (error: any) {
+      console.error('❌ TakeActions: Error fetching pending actions', {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: '/admin/pending-actions',
+        error: error
+      });
     }
   };
 
   const fetchUnmappedStudents = async () => {
     try {
+      console.log('🔍 TakeActions: Fetching unmapped students', {
+        endpoint: '/admin/student-mentor-mappings'
+      });
+      
       const response = await api.get('/admin/student-mentor-mappings');
       const { studentsWithoutMentors } = response.data;
+      
+      console.log('✅ TakeActions: Unmapped students fetched successfully', {
+        count: studentsWithoutMentors?.length || 0,
+        endpoint: '/admin/student-mentor-mappings'
+      });
+      
+      if (studentsWithoutMentors && studentsWithoutMentors.length > 0) {
+        console.warn('⚠️ TakeActions: Found students without mentors', {
+          count: studentsWithoutMentors.length
+        });
+      }
+      
       setUnmappedStudents(studentsWithoutMentors || []);
-    } catch (error) {
-      console.error('Error fetching unmapped students:', error);
+    } catch (error: any) {
+      console.error('❌ TakeActions: Error fetching unmapped students', {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: '/admin/student-mentor-mappings',
+        error: error
+      });
     }
   };
 
@@ -119,10 +155,23 @@ const TakeActions: React.FC<TakeActionsProps> = ({
     try {
       setActionLoading(action.userId);
       
+      console.log('ℹ️ TakeActions: Processing unmap students action', {
+        userId: action.userId,
+        userName: action.userName,
+        affectedCount: action.affectedCount,
+        newRole: action.newRole,
+        endpoint: `/admin/users/${action.userId}/role`
+      });
+      
       // This would typically involve updating the user's role and unmapping students
       // The actual implementation depends on your backend API
       await api.put(`/admin/users/${action.userId}/role`, {
         role: action.newRole
+      });
+
+      console.log('✅ TakeActions: Students unmapped successfully', {
+        userId: action.userId,
+        count: action.affectedCount
       });
 
       toast.success('Students Unmapped', {
@@ -131,7 +180,15 @@ const TakeActions: React.FC<TakeActionsProps> = ({
 
       // Refresh data to reflect changes
       await fetchAllData();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ TakeActions: Failed to unmap students', {
+        userId: action.userId,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        endpoint: `/admin/users/${action.userId}/role`,
+        error: error
+      });
+      
       toast.error('Failed to Process Action', {
         description: 'Unable to unmap students. Please try again.'
       });
@@ -144,6 +201,14 @@ const TakeActions: React.FC<TakeActionsProps> = ({
     try {
       setActionLoading(action.userId);
       
+      console.log('ℹ️ TakeActions: Processing no mentor alerts', {
+        userId: action.userId,
+        actionType: actionType,
+        studentCount: action.students?.length || 0,
+        mentorId: mentorId || 'none',
+        endpoint: '/admin/process-no-mentor-alerts'
+      });
+      
       const payload: any = {
         action: actionType,
         studentIds: action.students?.map(s => s.id) || []
@@ -155,6 +220,13 @@ const TakeActions: React.FC<TakeActionsProps> = ({
 
       const response = await api.post('/admin/process-no-mentor-alerts', payload);
 
+      console.log('✅ TakeActions: No mentor alerts processed successfully', {
+        userId: action.userId,
+        actionType: actionType,
+        studentCount: action.students?.length || 0,
+        message: response.data.message
+      });
+
       toast.success('No Mentor Alerts Processed', {
         description: response.data.message
       });
@@ -162,6 +234,16 @@ const TakeActions: React.FC<TakeActionsProps> = ({
       // Refresh data to reflect changes
       await fetchAllData();
     } catch (error: any) {
+      console.error('❌ TakeActions: Failed to process no mentor alerts', {
+        userId: action.userId,
+        actionType: actionType,
+        studentCount: action.students?.length || 0,
+        status: error.response?.status,
+        message: error.response?.data?.error || error.message,
+        endpoint: '/admin/process-no-mentor-alerts',
+        error: error
+      });
+      
       toast.error('Failed to Process Action', {
         description: error.response?.data?.error || 'Unable to process no mentor alerts. Please try again.'
       });
@@ -176,12 +258,30 @@ const TakeActions: React.FC<TakeActionsProps> = ({
     try {
       setActionLoading(action.notificationId);
 
+      console.log('ℹ️ TakeActions: Processing role request', {
+        notificationId: action.notificationId,
+        userId: action.userId,
+        userEmail: action.userEmail,
+        requestedRole: action.requestedRole,
+        actionType: actionType,
+        assignedRole: assignedRole || 'none',
+        endpoint: `/admin/notifications/${action.notificationId}/resolve`
+      });
+
       const payload = {
         action: actionType,
         ...(actionType === 'approve' && assignedRole ? { assignedRole } : {})
       };
 
       const response = await api.put(`/admin/notifications/${action.notificationId}/resolve`, payload);
+
+      console.log('✅ TakeActions: Role request processed successfully', {
+        notificationId: action.notificationId,
+        userId: action.userId,
+        actionType: actionType,
+        assignedRole: assignedRole || 'rejected',
+        message: response.data.message
+      });
 
       toast.success(
         actionType === 'approve' ? 'Role Request Approved' : 'Role Request Rejected', 
@@ -193,6 +293,16 @@ const TakeActions: React.FC<TakeActionsProps> = ({
       // Refresh data to reflect changes
       await fetchAllData();
     } catch (error: any) {
+      console.error('❌ TakeActions: Failed to process role request', {
+        notificationId: action.notificationId,
+        userId: action.userId,
+        actionType: actionType,
+        status: error.response?.status,
+        message: error.response?.data?.error || error.message,
+        endpoint: `/admin/notifications/${action.notificationId}/resolve`,
+        error: error
+      });
+      
       toast.error('Failed to Process Request', {
         description: error.response?.data?.error || 'Unable to process role request. Please try again.'
       });

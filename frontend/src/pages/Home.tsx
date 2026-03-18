@@ -37,6 +37,10 @@ const Home: React.FC = () => {
         const res = await api.get('/student/status')
         setLatestPass(res.data.passes[0] || null)
         if (res.data.passes[0]) {
+          console.log('✅ Home: Gate pass status fetched successfully', {
+            status: res.data.passes[0].status,
+            passId: res.data.passes[0].id
+          });
           if (res.data.passes[0].status === 'APPROVED') {
             toast.success('Gate Pass Approved!', {
               description: 'Your latest gate pass has been approved. You can now show the QR code to security.'
@@ -51,8 +55,14 @@ const Home: React.FC = () => {
             });
           }
         }
-      } catch {
+      } catch (err: any) {
         const errorMessage = 'Failed to fetch latest gate pass.';
+        console.error('❌ Home: Failed to fetch gate pass status', {
+          endpoint: '/student/status',
+          status: err.response?.status,
+          message: err.response?.data?.message || err.message,
+          error: err
+        });
         setError(errorMessage);
         toast.error('Failed to Load Status', {
           description: errorMessage
@@ -64,8 +74,16 @@ const Home: React.FC = () => {
       try {
         const res = await api.get('/student/mentor')
         setMentor(res.data.mentor)
-      } catch (err) {
-        console.log('Failed to fetch mentor details:', err)
+        console.log('✅ Home: Mentor details fetched successfully', {
+          mentorId: res.data.mentor?.id,
+          mentorName: res.data.mentor?.name
+        });
+      } catch (err: any) {
+        console.warn('⚠️ Home: Failed to fetch mentor details (non-critical)', {
+          endpoint: '/student/mentor',
+          status: err.response?.status,
+          message: err.response?.data?.message || err.message
+        });
         setMentor(null)
       }
     }

@@ -58,12 +58,20 @@ const AdminPanel = () => {
   // API Functions - Direct calls to your backend routes
   const fetchUsers = async () => {
     try {
-      console.log('🔍 Fetching users from /api/admin/users');
+      console.log('🔍 AdminPanel: Fetching users from /admin/users');
       const response = await api.get('/admin/users');
-      console.log('✅ Users fetched:', response.data);
+      console.log('✅ AdminPanel: Users fetched successfully', {
+        count: response.data.users?.length || response.data.length,
+        endpoint: '/admin/users'
+      });
       return response.data;
-    } catch (error) {
-      console.error('❌ Error fetching users:', error);
+    } catch (error: any) {
+      console.error('❌ AdminPanel: Error fetching users', {
+        endpoint: '/admin/users',
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error
+      });
       toast.error('Failed to Load Users', {
         description: 'Unable to fetch user data. Please try again.'
       });
@@ -73,12 +81,21 @@ const AdminPanel = () => {
 
   const fetchStats = async () => {
     try {
-      console.log('🔍 Fetching stats from /api/admin/stats');
+      console.log('🔍 AdminPanel: Fetching stats from /admin/stats');
       const response = await api.get('/admin/stats');
-      console.log('✅ Stats fetched:', response.data);
+      console.log('✅ AdminPanel: Stats fetched successfully', {
+        totalUsers: response.data.totalUsers,
+        totalGatePasses: response.data.totalGatePasses,
+        endpoint: '/admin/stats'
+      });
       return response.data;
-    } catch (error) {
-      console.error('❌ Error fetching stats:', error);
+    } catch (error: any) {
+      console.error('❌ AdminPanel: Error fetching stats', {
+        endpoint: '/admin/stats',
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error
+      });
       toast.error('Failed to Load Statistics', {
         description: 'Unable to fetch dashboard statistics. Please try again.'
       });
@@ -88,12 +105,20 @@ const AdminPanel = () => {
 
   const fetchOutpassReports = async () => {
     try {
-      console.log('🔍 Fetching outpass reports from /api/admin/outpass-reports');
+      console.log('🔍 AdminPanel: Fetching outpass reports from /admin/outpass-reports');
       const response = await api.get('/admin/outpass-reports?limit=10');
-      console.log('✅ Outpass reports fetched:', response.data);
+      console.log('✅ AdminPanel: Outpass reports fetched successfully', {
+        count: response.data.reports?.length || 0,
+        endpoint: '/admin/outpass-reports'
+      });
       return response.data;
-    } catch (error) {
-      console.error('❌ Error fetching outpass reports:', error);
+    } catch (error: any) {
+      console.error('❌ AdminPanel: Error fetching outpass reports', {
+        endpoint: '/admin/outpass-reports',
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error
+      });
       toast.error('Failed to Load Reports', {
         description: 'Unable to fetch outpass reports. Please try again.'
       });
@@ -104,10 +129,17 @@ const AdminPanel = () => {
   const deleteUser = async (userId: string, force = false) => {
     try {
       const url = force ? `/admin/users/${userId}?force=true` : `/admin/users/${userId}`;
-      console.log(`🔍 Deleting user ${userId} via /api${url} (force: ${force})`);
+      console.log(`🔍 AdminPanel: Deleting user ${userId} via DELETE /admin/users/${userId}`, {
+        force: force,
+        endpoint: url
+      });
       toast.loading(`${force ? 'Force deleting' : 'Deleting'} user...`);
       const response = await api.delete(url);
-      console.log('✅ User deleted successfully', response.data);
+      console.log('✅ AdminPanel: User deleted successfully', {
+        userId: userId,
+        force: force,
+        deletedDependencies: response.data.deletedDependencies
+      });
       setUsers(users.filter(u => u.id !== userId));
       toast.dismiss();
       
@@ -128,13 +160,29 @@ const AdminPanel = () => {
         });
       }
     } catch (error: any) {
-      console.error('❌ Error deleting user:', error);
+      const dependencyInfo = error.response?.data?.details || {};
+      console.error('❌ AdminPanel: Error deleting user', {
+        userId: userId,
+        force: force,
+        status: error.response?.status,
+        message: error.response?.data?.error || error.message,
+        dependencies: dependencyInfo,
+        error: error
+      });
       toast.dismiss();
       
       if (error.response?.status === 400 && error.response?.data?.details) {
         // Show detailed dependency information
         const details = error.response.data.details;
         const dependencies = [];
+        
+        console.warn('⚠️ AdminPanel: User has blocking dependencies', {
+          userId: userId,
+          gatePasses: details.gatePasses,
+          passesToReview: details.passesToReview,
+          studentMappings: details.studentMappings,
+          mentorMappings: details.mentorMappings
+        });
         
         if (details.gatePasses > 0) {
           dependencies.push(`${details.gatePasses} outpass application${details.gatePasses > 1 ? 's' : ''}`);
@@ -167,7 +215,7 @@ const AdminPanel = () => {
 
   const downloadReport = async () => {
     try {
-      console.log('🔍 Downloading report from /api/admin/download-outpass-report');
+      console.log('🔍 AdminPanel: Downloading report from /admin/download-outpass-report');
       toast.loading('Preparing report for download...');
       const response = await api.post('/admin/download-outpass-report', 
         { format: 'excel' }, 
@@ -184,13 +232,22 @@ const AdminPanel = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      console.log('✅ Report downloaded successfully');
+      console.log('✅ AdminPanel: Report downloaded successfully', {
+        size: response.data.size,
+        type: response.data.type,
+        filename: link.download
+      });
       toast.dismiss();
       toast.success('Report Downloaded', {
         description: 'Outpass report has been successfully downloaded.'
       });
-    } catch (error) {
-      console.error('❌ Error downloading report:', error);
+    } catch (error: any) {
+      console.error('❌ AdminPanel: Error downloading report', {
+        endpoint: '/admin/download-outpass-report',
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error
+      });
       toast.dismiss();
       toast.error('Failed to Download Report', {
         description: 'Unable to generate the report. Please try again.'
@@ -203,7 +260,7 @@ const AdminPanel = () => {
   const fetchDashboardData = async () => {
     try {
       setError(null);
-      console.log('🔄 Fetching all dashboard data...');
+      console.log('🔄 AdminPanel: Fetching all dashboard data...');
       
       const [usersData, statsData, outpassData] = await Promise.all([
         fetchUsers(),
@@ -215,14 +272,21 @@ const AdminPanel = () => {
       setStats(statsData);
       setTodayActivity(outpassData.summary?.today || outpassData.today);
       
-      console.log('✅ All dashboard data loaded successfully');
+      console.log('✅ AdminPanel: All dashboard data loaded successfully', {
+        usersCount: (usersData.users || usersData).length,
+        statsLoaded: !!statsData,
+        reportsLoaded: !!outpassData
+      });
       if (!loading) {
         toast.success('Data Refreshed', {
           description: 'Dashboard data has been updated successfully.'
         });
       }
     } catch (error: any) {
-      console.error('❌ Error fetching dashboard data:', error);
+      console.error('❌ AdminPanel: Error fetching dashboard data', {
+        failedAt: error.message,
+        error: error
+      });
       const errorMessage = error.message || 'Failed to load dashboard data. Please try again.';
       setError(errorMessage);
       toast.error('Failed to Load Dashboard', {

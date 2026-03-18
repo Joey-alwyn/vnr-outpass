@@ -48,6 +48,11 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
     
     // Validate that parent mobile is provided when role is STUDENT
     if (formData.role === 'STUDENT' && !formData.parentMobile.trim()) {
+      console.warn('⚠️ EditUserModal: Validation failed - student without parent mobile', {
+        userId: user.id,
+        email: user.email,
+        role: formData.role
+      });
       toast.error('Validation Error', {
         description: 'Parent mobile number is required for students.'
       });
@@ -59,13 +64,33 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
     try {
       toast.loading('Updating user...');
       
+      console.log('ℹ️ EditUserModal: Starting user update', {
+        userId: user.id,
+        email: user.email,
+        roleChanged: formData.role !== user.role,
+        mobileChanged: formData.mobile !== user.mobile,
+        parentMobileChanged: formData.parentMobile !== user.parentMobile
+      });
+      
       // Track which updates were made
       const updates = [];
       
       // Update role if changed
       if (formData.role !== user.role) {
+        console.log('ℹ️ EditUserModal: Updating user role', {
+          userId: user.id,
+          oldRole: user.role,
+          newRole: formData.role,
+          endpoint: `/admin/users/${user.id}/role`
+        });
+        
         await api.put(`/admin/users/${user.id}/role`, { role: formData.role });
         updates.push('role');
+        
+        console.log('✅ EditUserModal: User role updated successfully', {
+          userId: user.id,
+          newRole: formData.role
+        });
       }
       
       // Update mobile numbers if changed
@@ -73,6 +98,13 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
       const parentMobileChanged = formData.parentMobile !== user.parentMobile;
       
       if (mobileChanged || parentMobileChanged) {
+        console.log('ℹ️ EditUserModal: Updating user phone numbers', {
+          userId: user.id,
+          mobileChanged: mobileChanged,
+          parentMobileChanged: parentMobileChanged,
+          endpoint: `/admin/users/${user.id}/mobile`
+        });
+        
         // Clear parent mobile if role is not STUDENT
         const parentMobileToSend = formData.role === 'STUDENT' ? formData.parentMobile : '';
         
@@ -88,14 +120,30 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
         } else if (parentMobileChanged) {
           updates.push('parent mobile');
         }
+        
+        console.log('✅ EditUserModal: User phone numbers updated successfully', {
+          userId: user.id,
+          mobileChanged: mobileChanged,
+          parentMobileChanged: parentMobileChanged
+        });
       }
       
       toast.dismiss();
       if (updates.length > 0) {
+        console.log('✅ EditUserModal: User updated successfully', {
+          userId: user.id,
+          updates: updates
+        });
+        
         toast.success('User Updated', {
           description: `${user.name}'s ${updates.join(' and ')} has been successfully updated.`
         });
       } else {
+        console.warn('⚠️ EditUserModal: No changes detected', {
+          userId: user.id,
+          email: user.email
+        });
+        
         toast.info('No Changes', {
           description: 'No changes were made to the user.'
         });
@@ -104,6 +152,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ show, onHide, onUserUpdat
       onUserUpdated();
       onHide();
     } catch (error: any) {
+      console.error('❌ EditUserModal: Failed to update user', {
+        userId: user.id,
+        email: user.email,
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        error: error
+      });
+      
       toast.dismiss();
       toast.error('Failed to Update User', {
         description: error.response?.data?.message || 'Unable to update user. Please try again.'
